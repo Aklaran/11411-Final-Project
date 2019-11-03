@@ -6,19 +6,17 @@ import neuralcoref
 
 pp = pprint.PrettyPrinter()
 
-neuralcoref.add_to_pipe(nlp)
-doc = nlp("Apple isn't looking at buying U.K. startup for $1 billion. \
-    They are trying to buy Google for $1. Their stock dropped 300 points, and their CEO has just been fired by the board.")
-
-print(doc._.coref_clusters)
-
 class Preprocessor:
     def __init__(self):
         nlp = spacy.load("en_core_web_sm")
+        neuralcoref.add_to_pipe(nlp)
         doc = nlp("Apple isn't looking at buying U.K. startup for $1 billion. I am looking at buying Google for $1.")
 
         self.processed_doc = self.process(doc)
+        self.coref = doc._.coref_clusters
+
         print(self.processed_doc)
+        print(self.coref)
 
     def process(self, doc):
         preprocessed_doc = []
