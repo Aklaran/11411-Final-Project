@@ -9,34 +9,35 @@ class QuestionGenerator:
         tagged_text = preprocessor.processed_doc
 
         wh_questions = self.generateWhQuestions(tagged_text)
-        binary_questions = self.generateBinaryQuestions(tagged_text)
+        #binary_questions = self.generateBinaryQuestions(tagged_text)
 
         print(wh_questions)
-        print(binary_questions)
 
     def generateWhQuestions(self, taggedText):
         output = []
+
         for sentence in taggedText:
-            sentenceCopy = deepcopy(sentence)
             question = False
 
-            for word in sentenceCopy:
-                if word['ent_type'] == 'PER':
-                    question = True
-                    word['text'] = 'who'
-                if word ['ent_type'] == 'LOC':
-                    question = True
-                    word['tect'] = 'where'
-                if word ['ent_type'] == 'ORG':
-                    question = True
-                    word['text'] = 'what'
-            
+            for possible_subject in sentence:
+                if possible_subject['dep'] == 'nsubj' and possible_subject['headPos'] == 'VERB':
+                    print(possible_subject['text'])
+                    if possible_subject['ent_type'] == 'PER':
+                        question = True
+                        possible_subject['text'] = 'who'
+                    if possible_subject ['ent_type'] == 'LOC':
+                        question = True
+                        possible_subject['tect'] = 'where'
+                    if possible_subject ['ent_type'] == 'ORG':
+                        question = True
+                        possible_subject['text'] = 'what'
+                
             if question:
-                out = " ".join([x['text'] for x in sentenceCopy])
+                out = " ".join([x['text'] for x in sentence[:-1]])
                 out += "?"
 
                 output.append(out)
-
+        
         return output
     
     def generateBinaryQuestions(self, taggedText):
