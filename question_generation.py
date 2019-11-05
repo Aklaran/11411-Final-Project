@@ -23,8 +23,11 @@ class QuestionGenerator:
                     # print(possible_subject['text'] + ' ' + possible_subject['ent_type'])
 
                     # replace the subject noun chunk with the appropriate wh- pronoun
-                    possible_subject['text'] = self.replaceWhSubject(possible_subject)
-                    question = True
+                    possible_pronoun = self.replaceWhSubject(possible_subject)
+
+                    if possible_pronoun:
+                        question = True
+                        possible_subject['text'] = possible_pronoun
                 
             # reconstruct the question with a question mark and add it to the output
             if question:
