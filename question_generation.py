@@ -9,7 +9,6 @@ class QuestionGenerator:
         tagged_text = preprocessor.processed_doc
 
         wh_questions = self.generateWhQuestions(tagged_text)
-        #binary_questions = self.generateBinaryQuestions(tagged_text)
 
         print(wh_questions)
 
@@ -21,17 +20,13 @@ class QuestionGenerator:
 
             for possible_subject in sentence:
                 if possible_subject['dep'] == 'nsubj' and possible_subject['headPos'] == 'VERB':
-                    print(possible_subject['text'])
-                    if possible_subject['ent_type'] == 'PER':
-                        question = True
-                        possible_subject['text'] = 'who'
-                    if possible_subject ['ent_type'] == 'LOC':
-                        question = True
-                        possible_subject['tect'] = 'where'
-                    if possible_subject ['ent_type'] == 'ORG':
-                        question = True
-                        possible_subject['text'] = 'what'
+                    # print(possible_subject['text'] + ' ' + possible_subject['ent_type'])
+
+                    # replace the subject noun chunk with the appropriate wh- pronoun
+                    possible_subject['text'] = self.replaceWhSubject(possible_subject)
+                    question = True
                 
+            # reconstruct the question with a question mark and add it to the output
             if question:
                 out = " ".join([x['text'] for x in sentence[:-1]])
                 out += "?"
@@ -39,26 +34,16 @@ class QuestionGenerator:
                 output.append(out)
         
         return output
-    
-    def generateBinaryQuestions(self, taggedText):
-        output = []
-        for sentence in taggedText:
-            sentenceCopy = deepcopy(sentence)
-            question = False
 
-            for i, word in enumerate(sentenceCopy):
-                if word['lemma'] == 'be':
-                    # FIXME: this is only gonna go back 1 word; it actually needs to go back to the head of the dependency phrase
-                    sentenceCopy[i-1], sentenceCopy[i] = word, sentenceCopy[i-1]
-                    question = True
-            
-            if question:
-                out = " ".join([x['text'] for x in sentenceCopy])
-                out += "?"
-
-                output.append(out)
-            
-        return output            
+    def replaceWhSubject(self, subj):
+        # create a dictionary to map from entity types to wh- pronouns
+        switcher = {
+            'PERSON': 'who',
+            'LOC': 'where',
+            'ORG': 'what'
+        }
+        
+        return switcher.get(subj['ent_type'], None)           
 
 def main():
     qg = QuestionGenerator(st.Preprocessor())
