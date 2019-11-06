@@ -1,3 +1,10 @@
 pip3 install -U spacy==2.1.0
 pip3 install -U spacy-lookups-data
 python -m spacy download en
+
+pip3 install neuralcoref --no-binary neuralcoref
+
+pip3 install pyspellchecker
+
+pip3 install --user -U nltk
+python3 -m nltk.downloader all
