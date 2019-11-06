@@ -2,65 +2,69 @@
 
 from copy import deepcopy
 import spacy_tokenization as st
+import spacy
 
 class QuestionGenerator:
 
     def __init__(self, preprocessor):
-        tagged_text = preprocessor.processed_doc
+        tagged_text = preprocessor.doc
 
-        wh_questions = self.generateWhQuestions(tagged_text)
-        binary_questions = self.generateBinaryQuestions(tagged_text)
+        self.wh_questions = self.generateWhQuestions(tagged_text)
 
-        print(wh_questions)
-        print(binary_questions)
-
-    def generateWhQuestions(self, taggedText):
+    def generateWhQuestions(self, tagged_text):
         output = []
-        for sentence in taggedText:
-            sentenceCopy = deepcopy(sentence)
-            question = False
 
-            for word in sentenceCopy:
-                if word['ent_type'] == 'PER':
-                    question = True
-                    word['text'] = 'who'
-                if word ['ent_type'] == 'LOC':
-                    question = True
-                    word['tect'] = 'where'
-                if word ['ent_type'] == 'ORG':
-                    question = True
-                    word['text'] = 'what'
+        for sentence in tagged_text.sents:
+            is_question = False
+            question = []
+            main_verb = None
+            main_verb_found = False
+
+            for token in sentence:
+                # looking for the nominal subject of the sentence...
+                if token.dep_ == 'nsubj' and token.head.pos_ == 'VERB':
+                    # try to get a wh- pronoun for the subject
+                    possible_pronoun = self.replaceWhSubject(token)
+
+                    # if a pronoun exists, replace the word, mark this as a valid question and begin constructing the question
+                    if possible_pronoun:
+                        is_question = True
+                        main_verb = token.head
+                        question.append(possible_pronoun) # TODO:later, will want to append whole token for synonyms. for now, just string.
+                
+                # if a nominal subject has been found, start constructing the rest of the sentence
+                if is_question:
+                    # waiting till we see the main verb because we don't want to append any extra words from the nsubj's noun chunk
+                    if main_verb and token == main_verb:
+                        main_verb_found = True
+                    
+                    # once we've found the main verb, begin appending tokens 
+                    if main_verb_found:
+                        question.append(token.text)
             
-            if question:
-                out = " ".join([x['text'] for x in sentenceCopy])
+            # construct the question string and add to output
+            if len(question) > 0:
+                out = " ".join([x for x in question[:-1]]) # indexing till -1 to avoid final punctuation
                 out += "?"
+                out = out.capitalize()
 
                 output.append(out)
-
+        
         return output
-    
-    def generateBinaryQuestions(self, taggedText):
-        output = []
-        for sentence in taggedText:
-            sentenceCopy = deepcopy(sentence)
-            question = False
 
-            for i, word in enumerate(sentenceCopy):
-                if word['lemma'] == 'be':
-                    # FIXME: this is only gonna go back 1 word; it actually needs to go back to the head of the dependency phrase
-                    sentenceCopy[i-1], sentenceCopy[i] = word, sentenceCopy[i-1]
-                    question = True
-            
-            if question:
-                out = " ".join([x['text'] for x in sentenceCopy])
-                out += "?"
-
-                output.append(out)
-            
-        return output            
+    def replaceWhSubject(self, subj):
+        # dictionary to map from entity types to wh- pronouns
+        switcher = {
+            'PERSON': 'who',
+            'LOC': 'where',
+            'ORG': 'what'
+        }
+        
+        return switcher.get(subj.ent_type_, None)           
 
 def main():
     qg = QuestionGenerator(st.Preprocessor())
+    print(qg.wh_questions)
 
 if __name__ == "__main__":    
     main()
