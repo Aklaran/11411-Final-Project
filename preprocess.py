@@ -4,25 +4,26 @@ import spacy
 import pprint
 import neuralcoref
 
+# pretty printing for debugging purposes
 pp = pprint.PrettyPrinter()
 
 class Preprocessor:
-    def __init__(self):
+    def __init__(self, input_text):
 
         # load spacy processor and add neuralcoref function
         nlp = spacy.load("en_core_web_sm")
         neuralcoref.add_to_pipe(nlp)
 
         # define text (change to pipeline for final version)
-        self.doc = nlp("Guy Fawkes, also known as Guido Fawkes while fighting for the Spanish, was a member of a group of provincial English Catholics who planned the failed Gunpowder Plot of 1605. He was born and educated in York; his father died when Fawkes was eight years old, after which his mother married a recusant Catholic. Fawkes converted to Catholicism and left for mainland Europe, where he fought for Catholic Spain in the Eighty Years' War against Protestant Dutch reformers in the Low Countries. He travelled to Spain to seek support for a Catholic rebellion in England without success. He later met Thomas Wintour, with whom he returned to England. Wintour introduced him to Robert Catesby, who planned to assassinate King James I and restore a Catholic monarch to the throne. The plotters leased an undercroft beneath the House of Lords; Fawkes was placed in charge of the gunpowder which they stockpiled there. The authorities were prompted by an anonymous letter to search Westminster Palace during the early hours of 5 November, and they found Fawkes guarding the explosives. He was questioned and tortured over the next few days and confessed to wanting to blow up the House of Lords.")
+        self.doc = nlp(input_text)
 
         # process text
-        self.processed_doc = self.process(doc)
-        self.coref = doc._.coref_clusters
+        self.processed_doc = self.process(self.doc)
+        self.coref = self.doc._.coref_clusters
 
         # print processed texts (for testing only, delete for final version)
         # print(self.processed_doc)
-        print(self.coref)
+        # print(self.coref)
 
     # process()
     # inputs: doc (string)
@@ -32,7 +33,7 @@ class Preprocessor:
         preprocessed_doc = []
         for sent in doc.sents:
 
-            print(sent.text)
+            # print(sent.text)
             sentence = []
             for token in sent:
 
@@ -64,14 +65,14 @@ class Preprocessor:
                 sentence.append(token_dict)
 
                 # sample coref resolution (print main coref)
-                if coref:
-                    print(token_dict['text'], ':', coref[0].main)
-                else:
-                    print(token_dict['text'], ': None')
+                # if coref:
+                #     #print(token_dict['text'], ':', coref[0].main)
+                # else:
+                #     print(token_dict['text'], ': None')
             
             preprocessed_doc.append(sentence)
         
         return preprocessed_doc
 
 # local testing (delete for final version)
-prep = Preprocessor()
+# prep = Preprocessor()

@@ -1,16 +1,10 @@
 # this is the main run file for question generation
 
 from copy import deepcopy
-import spacy_tokenization as st
+import preprocess as st
 import spacy
 
 class QuestionGenerator:
-
-    def __init__(self, preprocessor):
-        tagged_text = preprocessor.doc
-
-        self.wh_questions = self.generateWhQuestions(tagged_text)
-
     def generateWhQuestions(self, tagged_text):
         output = []
 
@@ -60,11 +54,4 @@ class QuestionGenerator:
             'ORG': 'what'
         }
         
-        return switcher.get(subj.ent_type_, None)           
-
-def main():
-    qg = QuestionGenerator(st.Preprocessor())
-    print(qg.wh_questions)
-
-if __name__ == "__main__":    
-    main()
+        return switcher.get(subj.ent_type_, None)
