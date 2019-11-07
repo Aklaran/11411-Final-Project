@@ -5,6 +5,9 @@ import preprocess as prep
 import question_generation as qg
 import question_answering as qa
 
+from pprint import PrettyPrinter
+pp = PrettyPrinter()
+
 '''
 Main run loop for our QG/QA system.
 Input: Text file
@@ -25,6 +28,8 @@ if __name__ == "__main__":
     with open(INPUT_TXT, 'r') as file:
         text = file.read()
 
+    print(text)
+
     # Instantiate our preprocessor and get the processed doc
     preprocesser = prep.Preprocessor(text)
     processed_doc = preprocesser.doc
@@ -33,7 +38,7 @@ if __name__ == "__main__":
     question_generator = qg.QuestionGenerator()
 
     wh_questions = question_generator.generateWhQuestions(processed_doc)
-    print(wh_questions)
+    pp.pprint(wh_questions)
 
     # TODO: Expand question set with synonyms etc.
     # TODO: Filter question set for good questions
