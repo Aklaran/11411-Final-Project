@@ -18,10 +18,13 @@ class QuestionGenerator:
             for token in sentence:
                 # looking for the nominal subject of the sentence...
                 if token.dep_ == 'nsubj' and token.head.pos_ == 'VERB':
-                    
+
                     # construct a wh- question where the answer is the nominal object
                     chunk = next((chunk for chunk in doc.noun_chunks if chunk.root == token), None)
-                    if chunk :output.append(self.generateWhObjQuestion(chunk))
+                    if chunk:
+                        # exclude pronominal phrases and 'who'
+                        if chunk.root.tag_ not in ["PRP", "WP"]: 
+                            output.append(self.generateWhObjQuestion(chunk))
 
                     # try to get a wh- pronoun for the subject
                     # FIXME: this only gets possible pronouns for named entities. Should be expended.
@@ -55,7 +58,14 @@ class QuestionGenerator:
     
     def generateWhObjQuestion(self, chunk):
         # FIXME: Get the right wh- word for the questions!
-        return "What is " + chunk.text + "?"
+        print(chunk.root.text + " " + chunk.root.tag_)
+
+        if chunk.root.tag_.endswith('S'):
+            linking_verb = 'are'
+        else:
+            linking_verb = 'is'
+
+        return "What " + linking_verb + " " + chunk.text + "?"
 
     def replaceWhSubject(self, subj):
         # dictionary to map from entity types to wh- pronouns
