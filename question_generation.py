@@ -58,14 +58,23 @@ class QuestionGenerator:
     
     def generateWhObjQuestion(self, chunk):
         # FIXME: Get the right wh- word for the questions!
-        print(chunk.root.text + " " + chunk.root.tag_)
+        print(chunk.text + " " + chunk.root.tag_)
 
+        # change 'to be' inflection for plural words
+        # spacy.Token.tag denotes plural words with a final 'S'
         if chunk.root.tag_.endswith('S'):
             linking_verb = 'are'
         else:
             linking_verb = 'is'
 
-        return "What " + linking_verb + " " + chunk.text + "?"
+        # only capitalize proper names
+        # using non-null entity types as a proxy
+        if chunk.root.ent_type_ == '':
+            text = chunk.text.lower()
+        else:
+            text = chunk.text
+
+        return "What " + linking_verb + " " + text + "?"
 
     def replaceWhSubject(self, subj):
         # dictionary to map from entity types to wh- pronouns
