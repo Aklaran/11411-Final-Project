@@ -2,7 +2,7 @@ import sys
 import io
 
 import preprocess as prep
-import question_generation as qg
+import ask as qg
 import question_setup as qs
 import answer_questions as aq
 
@@ -44,7 +44,7 @@ if __name__ == "__main__":
     # Instantiate our question answerer and answer some questions
 
     question_setup = qs.question_setup(QUESTION_TXT)
-    question_answerer = aq.answer_question()
+    question_answerer = aq.answer_question(INPUT_TXT, QUESTION_TXT)
     # TODO: Expand question set with synonyms etc.
     # TODO: Filter question set for good questions
     # TODO: Given questions (or fake questions), generate some answers!

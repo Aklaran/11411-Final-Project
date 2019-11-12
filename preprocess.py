@@ -83,7 +83,7 @@ class Preprocessor:
 
                     ##for dependency parse: need to consider merging chunk dict as well
                     'head_text': token.head.text,
-                    'head_pos': token.head,pos_
+                    'head_pos': token.head.pos_
                     }
                     
                 sentence.append(token_dict)
