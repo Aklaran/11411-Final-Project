@@ -4,8 +4,8 @@ import string
 nlp = spacy.load('en_core_web_sm')
 
 class question_setup:
-    def __init__(self):
-        q_file = open("Test_Q_File","r+")
+    def __init__(self, question_file):
+        q_file = open(question_file,"r+")
         self.questions = q_file.read()
         q_list = self.questions.split('\n')
         self.doc_list = []
@@ -32,8 +32,3 @@ class question_setup:
             if word.text.upper() in wh_words:
                 self.wh_questions.append(question)
                 break
-
-i = question_setup()
-for question in i.doc_list:
-    i.classify(i.canonicalize(question))
-print(i.wh_questions)
