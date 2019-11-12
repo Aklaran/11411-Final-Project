@@ -96,7 +96,13 @@ if __name__ == "__main__":
     # Read string from 1 text file. 
     # TODO: extend this to a directory of files
     INPUT_TXT = sys.argv[1]
-    N_QUESTIONS = sys.argv[2]
+
+    # validate that n_questions is an integer
+    if not sys.argv[2].isdigit():
+        print("NUM_QUESTIONS must be an integer")
+        sys.exit(1)
+
+    N_QUESTIONS = int(sys.argv[2])
 
     with open(INPUT_TXT, 'r') as file:
         text = file.read()
@@ -109,5 +115,6 @@ if __name__ == "__main__":
     question_generator = QuestionGenerator()
 
     wh_questions = question_generator.generateWhQuestions(processed_doc)
-    for question in wh_questions:
-        print(question)
+    for i in range(N_QUESTIONS):
+        j = i % len(wh_questions)
+        print(wh_questions[j])
