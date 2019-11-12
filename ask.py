@@ -1,8 +1,10 @@
-# this is the main run file for question generation
+#!/usr/bin/env python3
 
 from copy import deepcopy
 import preprocess as st
 import spacy
+
+import sys
 
 class QuestionGenerator:
 
@@ -58,7 +60,6 @@ class QuestionGenerator:
     
     def generateWhObjQuestion(self, chunk):
         # FIXME: Get the right wh- word for the questions!
-        print(chunk.text + " " + chunk.root.tag_)
 
         # change 'to be' inflection for plural words
         # spacy.Token.tag denotes plural words with a final 'S'
@@ -85,3 +86,28 @@ class QuestionGenerator:
         }
         
         return switcher.get(subj.ent_type_, None)
+
+if __name__ == "__main__":
+    # Ensure 2 arguments
+    if len(sys.argv) != 3:
+        print("Usage: ./ask ARTICLE_TXT NUM_QUESTIONS")
+        sys.exit(1)
+
+    # Read string from 1 text file. 
+    # TODO: extend this to a directory of files
+    INPUT_TXT = sys.argv[1]
+    N_QUESTIONS = sys.argv[2]
+
+    with open(INPUT_TXT, 'r') as file:
+        text = file.read()
+
+    # Instantiate our preprocessor and get the processed doc
+    preprocesser = st.Preprocessor(text)
+    processed_doc = preprocesser.doc
+
+    # Instantiate our question generator and make some questions
+    question_generator = QuestionGenerator()
+
+    wh_questions = question_generator.generateWhQuestions(processed_doc)
+    for question in wh_questions:
+        print(question)

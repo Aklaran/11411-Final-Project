@@ -2,7 +2,7 @@ import sys
 import io
 
 import preprocess as prep
-import question_generation as qg
+import ask as qg
 import question_answering as qa
 
 from pprint import PrettyPrinter
