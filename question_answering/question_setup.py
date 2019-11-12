@@ -16,26 +16,24 @@ class question_setup:
         self.binary_questions = []
         self.either_questions = []
         self.other_questions = []
+
     def canonicalize(self, question):
         q_words = set(['WHO', 'WHAT', 'WHERE', 'WHEN', 'WHY', 'HOW', 'WHICH'])
         for i in range(len(question)):
             if question[i].text.upper() in q_words:
                 return question[i:]
         return question
+        
     def classify(self, question):
         # currently only doing wh word classification
         wh_words = ['WHO', 'WHAT', 'WHERE', 'WHEN', 'WHY', 'HOW']
         binary_words = ['']
         for word in question:
             if word.text.upper() in wh_words:
-                print('WH')
-                self.wh_questions.append(question)
-                break
-            if word.text.upper() in wh_words:
-                print('WH')
                 self.wh_questions.append(question)
                 break
 
 i = question_setup()
 for question in i.doc_list:
     i.classify(i.canonicalize(question))
+print(i.wh_questions)
