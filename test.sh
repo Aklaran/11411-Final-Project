@@ -1,4 +1,4 @@
-SHARE="$PWD"
+SHARE=$PWD
 IMAGE=$1
 NAME=$(sudo docker run -d -v ${SHARE}:/host/Users -it ${IMAGE} /bin/bash)
 echo '****************'
