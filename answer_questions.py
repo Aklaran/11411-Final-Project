@@ -1,7 +1,11 @@
+#!/usr/bin/env python3
+
 from __future__ import unicode_literals, print_function
 from spacy.lang.en import English # updatedimport os
 import spacy
+import sys
 import string
+
 
 sentences= English()
 nlp2 = spacy.load("en_core_web_sm")
@@ -11,13 +15,17 @@ class answer_question:
     def __init__(self, text_file, question_file):
         q_file = open(text_file,"r+")
         self.text = q_file.read()
+        #self.text = nlp2(self.text)
+        #self.text = self.text.decode('utf8').upper().encode('ascii')
         doc = sentences(self.text)
         self.tokenized_text = []
         self.sentences = [sent.string.strip() for sent in doc.sents]
 
+
         # this sets up the questions
         q_file = open(question_file,"r+")
         self.questions = q_file.read()
+        #self.questions = self.questions.decode('utf8').upper().encode('ascii')
         self.q_list = self.questions.split('\n')
 
     def make_question_set(self, question):
@@ -50,4 +58,17 @@ class answer_question:
         for word in noun_list:
             if word not in question:
                 return word
+        return ""
+
+answer_question = answer_question(sys.argv[1], sys.argv[2])
+
+for question in answer_question.q_list:
+    question_vector = answer_question.make_question_set(question)
+    best_matches = answer_question.find_best_matches(question_vector)
+    answer = answer_question.answer_wh_question(question, best_matches)
+    print(answer)
+
+
+
+
 
