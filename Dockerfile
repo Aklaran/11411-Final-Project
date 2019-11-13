@@ -7,8 +7,9 @@ ENV LC_ALL C.UTF-8
 # Install packages 
 RUN apt-get -y update && \
     apt-get -y upgrade && \
-	apt-get -y install python3-pip python3-dev &&\
-	pip3 install spacy 
+	apt-get -y install python3-pip python3-dev && \
+	pip3 install spacy && \
+	python3 -m spacy download en_core_web_lg
 
 # Add the files
 ADD . /QA

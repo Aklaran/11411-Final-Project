@@ -8,7 +8,7 @@ import string
 
 
 sentences= English()
-nlp2 = spacy.load("en_core_web_sm")
+nlp2 = spacy.load("en_core_web_lg")
 sentences.add_pipe(sentences.create_pipe('sentencizer')) # updated
 
 class answer_question:

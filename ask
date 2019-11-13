@@ -57,7 +57,8 @@ class QuestionGenerator:
 
                 output.append(out)
         
-        return output
+        # set to remove duplicates, list to remain subscriptable
+        return list(set(output))
     
     def generateWhObjQuestion(self, chunk):
         # FIXME: Get the right wh- word for the questions!
