@@ -32,7 +32,7 @@ class QuestionGenerator:
                     if chunk:
                         # exclude pronominal phrases and 'who'
                         if chunk.root.tag_ not in ["PRP", "WP"]:
-                            output.append(self.generateWhObjQuestion(chunk))
+                            output.append(self.generateWhObjQuestion(chunk, token))
 
                     # try to get a wh- pronoun for the subject
                     # FIXME: this only gets possible pronouns for named entities. Should be expended.
@@ -80,8 +80,9 @@ class QuestionGenerator:
         
         return None
     
-    def generateWhObjQuestion(self, chunk):
-        # FIXME: Get the right wh- word for the questions!
+    def generateWhObjQuestion(self, chunk, subject):
+        wh_word = self.replaceWhSubject(subject)
+        if not wh_word: wh_word = "What" # default
 
         # change 'to be' inflection for plural words
         # spacy.Token.tag denotes plural words with a final 'S'
@@ -97,7 +98,7 @@ class QuestionGenerator:
         else:
             text = chunk.text
 
-        return "What " + linking_verb + " " + text + "?"
+        return wh_word + ' ' + linking_verb + " " + text + "?"
 
     def replaceWhSubject(self, subj):
         # dictionary to map from entity types to wh- pronouns
@@ -144,3 +145,8 @@ if __name__ == "__main__":
     for i in range(N_QUESTIONS):
         j = i % len(wh_questions)
         print(wh_questions[j])
+    
+    # debug line; remove for prod
+    print()
+    for question in wh_questions: 
+        print(question)
