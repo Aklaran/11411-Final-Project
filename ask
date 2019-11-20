@@ -1,16 +1,20 @@
 #!/usr/bin/env python3
 # -*- coding:utf8 -*-
 
-from copy import deepcopy
-import preprocess as st
-import spacy
-
 import sys
+
+import spacy
+import preprocess as st
 
 class QuestionGenerator:
 
     def generateWhQuestions(self, doc):
         output = []
+
+        # Make questions for all coreferenced entities
+        for cluster in doc._.coref_clusters:
+            question = self.generateEntityWhQuestion(cluster)
+            output.append(self.generateEntityWhQuestion(cluster))
 
         for sentence in doc.sents:
             is_question = False
@@ -19,6 +23,7 @@ class QuestionGenerator:
             main_verb_found = False
 
             for token in sentence:
+
                 # looking for the nominal subject of the sentence...
                 if token.dep_ == 'nsubj' and token.head.pos_ == 'VERB':
 
@@ -26,7 +31,7 @@ class QuestionGenerator:
                     chunk = next((chunk for chunk in doc.noun_chunks if chunk.root == token), None)
                     if chunk:
                         # exclude pronominal phrases and 'who'
-                        if chunk.root.tag_ not in ["PRP", "WP"]: 
+                        if chunk.root.tag_ not in ["PRP", "WP"]:
                             output.append(self.generateWhObjQuestion(chunk))
 
                     # try to get a wh- pronoun for the subject
@@ -59,6 +64,21 @@ class QuestionGenerator:
         
         # set to remove duplicates, list to remain subscriptable
         return list(set(output))
+
+    def generateEntityWhQuestion(self, coref_cluster):
+        entity = coref_cluster.main
+
+        # TODO: get right plurality
+        # TODO: truecasing (see https://towardsdatascience.com/truecasing-in-natural-language-processing-12c4df086c21)
+        #       for now, just using .title() to capitalize every word
+
+        # entity[0] gives token, so can call ent_type_
+        wh_word = self.replaceWhSubject(entity[0])
+
+        if wh_word: 
+            return (wh_word + ' is ' + entity.text.title() + "?")
+        
+        return None
     
     def generateWhObjQuestion(self, chunk):
         # FIXME: Get the right wh- word for the questions!
@@ -82,11 +102,15 @@ class QuestionGenerator:
     def replaceWhSubject(self, subj):
         # dictionary to map from entity types to wh- pronouns
         switcher = {
-            'PERSON': 'who',
-            'LOC': 'where',
-            'ORG': 'what'
+            'PERSON': 'Who',
+            'GPE': 'What',
+            'LOC': 'Where',
+            'ORG': 'What',
+            'FC': 'What',
+            'EVENT': 'What',
+            'WORK_OF_ART': 'What',
         }
-        
+
         return switcher.get(subj.ent_type_, None)
 
 if __name__ == "__main__":

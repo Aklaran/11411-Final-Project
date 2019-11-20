@@ -2,7 +2,7 @@
 
 import spacy
 import pprint
-#import neuralcoref
+import neuralcoref
 
 # pretty printing for debugging purposes
 pp = pprint.PrettyPrinter()
@@ -12,7 +12,7 @@ class Preprocessor:
 
         # load spacy processor and add neuralcoref function
         nlp = spacy.load("en_core_web_sm")
-        #neuralcoref.add_to_pipe(nlp)
+        neuralcoref.add_to_pipe(nlp)
 
         # define text (change to pipeline for final version)
         self.doc = nlp(input_text)
