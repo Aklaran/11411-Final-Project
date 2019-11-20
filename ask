@@ -2,6 +2,7 @@
 # -*- coding:utf8 -*-
 
 import sys
+import string
 
 import spacy
 import preprocess as st
@@ -56,9 +57,8 @@ class QuestionGenerator:
             
             # construct the question string and add to output
             if len(question) > 0:
-                out = " ".join([x for x in question[:-1]]) # indexing till -1 to avoid final punctuation
-                out += "?"
-                out = out.capitalize()
+                # out = "".join([('' if x[0] in string.punctuation else ' ') + x for x in question[:-1]]) 
+                out = self.compileQuestionString(question[:-1]) # indexing till -1 to avoid final punctuation
 
                 output.append(out)
         
@@ -113,6 +113,39 @@ class QuestionGenerator:
         }
 
         return switcher.get(subj.ent_type_, None)
+
+    def compileQuestionString(self, lst):
+        output = lst[0]
+
+        num_quotes = 0
+
+        no_space_after = set(['$', '(', '[', '{', '-'])
+
+        no_space_before = set(string.punctuation) - set(['$', '(', '[', '{', '"'])
+
+        for i in range(1, len(lst)):
+            token = lst[i]
+            last = lst[i-1]
+
+            if token == '"':
+                num_quotes += 1
+
+                if num_quotes % 2 != 0:
+                    output += ' '
+
+            elif last not in no_space_after and token[0] not in no_space_before:
+                if last != '"' or num_quotes% 2 == 0:
+                    output += ' '
+
+            output += token
+
+
+        if output[-1] not in ['"', "'"] and output[-1] in string.punctuation:
+            output = output[:-1]
+
+        output += '?'
+
+        return output
 
 if __name__ == "__main__":
     # Ensure 2 arguments
