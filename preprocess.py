@@ -19,7 +19,7 @@ class Preprocessor:
 
         # process text
         self.processed_doc = self.process(self.doc)
-        self.coref = self.doc._.coref_clusters
+        #self.coref = self.doc._.coref_clusters
 
         # print processed texts (for testing only, delete for final version)
         # print(self.processed_doc)
@@ -56,11 +56,11 @@ class Preprocessor:
             sentence = []
             for token in sent:
 
-                # check for token corefs
-                if token._.in_coref:
-                    coref = token._.coref_clusters
-                else:
-                    coref = None
+                # # check for token corefs
+                # if token._.in_coref:
+                #     coref = token._.coref_clusters
+                # else:
+                #     coref = None
                 
                 # determine entity type and iob
                 ent_iob = token.ent_iob_
@@ -79,7 +79,7 @@ class Preprocessor:
                     'stop': token.is_stop,
                     'ent_iob': ent_iob,
                     'ent_type': ent_type,
-                    'coref': coref,
+                    #'coref': coref,
 
                     ##for dependency parse: need to consider merging chunk dict as well
                     'head_text': token.head.text,

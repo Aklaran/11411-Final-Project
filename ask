@@ -1,0 +1,185 @@
+#!/usr/bin/env python3
+# -*- coding:utf8 -*-
+
+import sys
+import string
+
+import spacy
+import preprocess as st
+
+class QuestionGenerator:
+
+    def generateWhQuestions(self, doc):
+        output = []
+
+        # Make questions for all coreferenced entities
+        for cluster in doc._.coref_clusters:
+            question = self.generateEntityWhQuestion(cluster)
+            output.append(self.generateEntityWhQuestion(cluster))
+
+        for sentence in doc.sents:
+            is_question = False
+            question = []
+            main_verb = None
+            main_verb_found = False
+
+            for token in sentence:
+
+                # looking for the nominal subject of the sentence...
+                if token.dep_ == 'nsubj' and token.head.pos_ == 'VERB':
+
+                    # construct a wh- question where the answer is the nominal object
+                    chunk = next((chunk for chunk in doc.noun_chunks if chunk.root == token), None)
+                    if chunk:
+                        # exclude pronominal phrases and 'who'
+                        if chunk.root.tag_ not in ["PRP", "WP"]:
+                            output.append(self.generateWhObjQuestion(chunk, token))
+
+                    # try to get a wh- pronoun for the subject
+                    # FIXME: this only gets possible pronouns for named entities. Should be expended.
+                    possible_pronoun = self.replaceWhSubject(token)
+
+                    # if a pronoun exists, replace the word, mark this as a valid question and begin constructing the question
+                    if possible_pronoun:
+                        is_question = True
+                        main_verb = token.head
+                        question.append(possible_pronoun) # TODO:later, will want to append whole token for synonyms. for now, just string.
+                
+                # if a nominal subject has been found, start constructing the rest of the sentence
+                if is_question:
+                    # waiting till we see the main verb because we don't want to append any extra words from the nsubj's noun chunk
+                    if main_verb and token == main_verb:
+                        main_verb_found = True
+                    
+                    # once we've found the main verb, begin appending tokens 
+                    if main_verb_found:
+                        question.append(token.text)
+            
+            # construct the question string and add to output
+            if len(question) > 0:
+                # out = "".join([('' if x[0] in string.punctuation else ' ') + x for x in question[:-1]]) 
+                out = self.compileQuestionString(question[:-1]) # indexing till -1 to avoid final punctuation
+
+                output.append(out)
+        
+        # set to remove duplicates, list to remain subscriptable
+        return list(set(output))
+
+    def generateEntityWhQuestion(self, coref_cluster):
+        entity = coref_cluster.main
+
+        # TODO: get right plurality
+        # TODO: truecasing (see https://towardsdatascience.com/truecasing-in-natural-language-processing-12c4df086c21)
+        #       for now, just using .title() to capitalize every word
+
+        # entity[0] gives token, so can call ent_type_
+        wh_word = self.replaceWhSubject(entity[0])
+
+        if wh_word: 
+            return (wh_word + ' is ' + entity.text.title() + "?")
+        
+        return None
+    
+    def generateWhObjQuestion(self, chunk, subject):
+        wh_word = self.replaceWhSubject(subject)
+        if not wh_word: wh_word = "What" # default
+
+        # change 'to be' inflection for plural words
+        # spacy.Token.tag denotes plural words with a final 'S'
+        if chunk.root.tag_.endswith('S'):
+            linking_verb = 'are'
+        else:
+            linking_verb = 'is'
+
+        # only capitalize proper names
+        # using non-null entity types as a proxy
+        if chunk.root.ent_type_ == '':
+            text = chunk.text.lower()
+        else:
+            text = chunk.text
+
+        return wh_word + ' ' + linking_verb + " " + text + "?"
+
+    def replaceWhSubject(self, subj):
+        # dictionary to map from entity types to wh- pronouns
+        switcher = {
+            'PERSON': 'Who',
+            'GPE': 'What',
+            'LOC': 'Where',
+            'ORG': 'What',
+            'FC': 'What',
+            'EVENT': 'What',
+            'WORK_OF_ART': 'What',
+        }
+
+        return switcher.get(subj.ent_type_, None)
+
+    def compileQuestionString(self, lst):
+        output = lst[0]
+
+        num_quotes = 0
+
+        no_space_after = set(['$', '(', '[', '{', '-'])
+
+        no_space_before = set(string.punctuation) - set(['$', '(', '[', '{', '"'])
+
+        for i in range(1, len(lst)):
+            token = lst[i]
+            last = lst[i-1]
+
+            if token == '"':
+                num_quotes += 1
+
+                if num_quotes % 2 != 0:
+                    output += ' '
+
+            elif last not in no_space_after and token[0] not in no_space_before:
+                if last != '"' or num_quotes% 2 == 0:
+                    output += ' '
+
+            output += token
+
+
+        if output[-1] not in ['"', "'"] and output[-1] in string.punctuation:
+            output = output[:-1]
+
+        output += '?'
+
+        return output
+
+if __name__ == "__main__":
+    # Ensure 2 arguments
+    if len(sys.argv) != 3:
+        print("Usage: ./ask ARTICLE_TXT NUM_QUESTIONS")
+        sys.exit(1)
+
+    # Read string from 1 text file. 
+    # TODO: extend this to a directory of files
+    INPUT_TXT = sys.argv[1]
+
+    # validate that n_questions is an integer
+    if not sys.argv[2].isdigit():
+        print("NUM_QUESTIONS must be an integer")
+        sys.exit(1)
+
+    N_QUESTIONS = int(sys.argv[2])
+
+    with open(INPUT_TXT, 'r') as file:
+        text = file.read()
+
+    # Instantiate our preprocessor and get the processed doc
+    preprocesser = st.Preprocessor(text)
+    processed_doc = preprocesser.doc
+
+    # Instantiate our question generator and make some questions
+    question_generator = QuestionGenerator()
+
+    wh_questions = question_generator.generateWhQuestions(processed_doc)
+    for i in range(N_QUESTIONS):
+        j = i % len(wh_questions)
+        print(wh_questions[j])
+    
+    # debug line; remove for prod
+    print()
+    for question in wh_questions: 
+        print(question)
