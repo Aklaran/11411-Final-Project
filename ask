@@ -19,7 +19,11 @@ class QuestionGenerator:
             doc (spaCy Doc object): Input text document parsed by spaCy & neural_coref
 
         Returns:
-            questions (list(str)): List of wh- questions.
+            questions (list(tuple)): List of tuples with info about wh-questions
+                tuple[0] (str): Question string.
+                tuple[1] (str): Class of the question, in
+                    ['WHO', 'WHAT', 'WHEN', 'WHERE', 'WHY', 'HOW', 'WHICH, 'BINARY']
+                tuple[2] (str): Answer to the question. (or None)
         """
 
         output = []
@@ -36,6 +40,7 @@ class QuestionGenerator:
         output = []
 
         for cluster in doc._.coref_clusters:
+            print(cluster)
             output.append(self.generate_entity_wh_question(cluster))
 
         return output
@@ -49,12 +54,13 @@ class QuestionGenerator:
         # TODO: truecasing
         #   (https://towardsdatascience.com/truecasing-in-natural-language-processing-12c4df086c21)
         #   for now, just using .title() to capitalize every word
+        entity_text = entity.text.title().strip()
 
         # entity[0] gives token, so can call ent_type_
         wh_word = self.wh_word_from(entity[0])
 
         if wh_word:
-            return wh_word + ' is ' + entity.text.title() + "?"
+            return (wh_word + ' is ' + entity_text + "?", wh_word.upper(), None)
 
         return None
 
