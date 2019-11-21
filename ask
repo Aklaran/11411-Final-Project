@@ -110,7 +110,7 @@ class QuestionGenerator:
             # construct the object question string and add to output
             if len(question) > 0:
                 # indexing till -1 to avoid final punctuation
-                out = self.compileQuestionString(question[:-1]) 
+                out = self.compile_question_string(question[:-1])
 
                 output.append(out)
 
@@ -143,7 +143,7 @@ class QuestionGenerator:
         else:
             text = chunk.text
 
-        return wh_word + ' ' + linking_verb + " " + text + "?"
+        return wh_word + ' ' + linking_verb + " " + text.strip() + "?"
 
     def wh_word_from(self, subj):
         """Returns a wh-word based on the entity type of subj."""
@@ -159,10 +159,21 @@ class QuestionGenerator:
             'WORK_OF_ART': 'What',
         }
 
-        return switcher.get(subj.ent_type_, None)
+        candidate = switcher.get(subj.ent_type_, None)
 
-    def compileQuestionString(self, lst):
+        if candidate:
+            return candidate
+        
+        if subj._.in_coref:
+            print(subj, end= " ")
+            print(subj._.coref_clusters[0].main[0].ent_type_)
+            return switcher.get(subj._.coref_clusters[0].main[0].ent_type_, None)
+
+        return None
+
+    def compile_question_string(self, lst):
         """Modifies punctuation to create a grammatical question string."""
+
         output = lst[0]
 
         num_quotes = 0
@@ -185,7 +196,7 @@ class QuestionGenerator:
                 if last != '"' or num_quotes% 2 == 0:
                     output += ' '
 
-            output += token
+            output += token.strip()
 
 
         if output[-1] not in ['"', "'"] and output[-1] in string.punctuation:
@@ -197,7 +208,7 @@ class QuestionGenerator:
 
 def main():
     """
-    Main run function; parses a text document and 
+    Main run function; parses a text document and
     prints generated questions to stdout.
     """
 
