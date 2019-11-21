@@ -5,14 +5,32 @@ from spacy.lang.en import English # updatedimport os
 import spacy
 import sys
 import string
+import preprocess as st
+import ask
 
 
 sentences= English()
+nlp = spacy.load('en_core_web_md')
 nlp2 = spacy.load("en_core_web_sm")
 sentences.add_pipe(sentences.create_pipe('sentencizer')) # updated
 
 class answer_question:
     def __init__(self, text_file, question_file):
+
+        with open(text_file, 'r') as file:
+            text = file.read()
+
+        # Instantiate our preprocessor and get the processed doc
+        preprocesser = st.Preprocessor(text)
+        processed_doc = preprocesser.doc
+
+        # Instantiate our question generator and make some questions
+        question_generator = ask.QuestionGenerator()
+
+        self.wh_questions = question_generator.generateWhQuestions(processed_doc)
+        print(self.wh_questions)
+
+
         q_file = open(text_file,"r+")
         self.text = q_file.read()
         #self.text = nlp2(self.text)
@@ -49,6 +67,17 @@ class answer_question:
             matches[sentence.text] = match_percent
         return max(matches, key = matches.get)
 
+    def find_best_matches_vectorized(self, question):
+        candidates = []
+        for sent in self.wh_questions:
+            candidate = nlp(str(sent))
+            score = nlp(question).similarity(candidate)
+            candidates.append((score, candidate))
+        
+        # print(candidates)
+        most_similar = max(candidates, key=lambda x: x[0])
+        return most_similar
+
     def answer_wh_question(self, question, best_sentence):
         doc = nlp2(best_sentence)
         noun_list = []
@@ -63,10 +92,13 @@ class answer_question:
 answer_question = answer_question(sys.argv[1], sys.argv[2])
 
 for question in answer_question.q_list:
+    match = answer_question.find_best_matches_vectorized(question)
+
+
     question_vector = answer_question.make_question_set(question)
     best_matches = answer_question.find_best_matches(question_vector)
     answer = answer_question.answer_wh_question(question, best_matches)
-    print(answer)
+    print(match[0], match[1], question, answer)
 
 
 
