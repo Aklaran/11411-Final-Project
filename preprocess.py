@@ -1,18 +1,21 @@
 # this is a text preprocessor module built using spacy and neuralcoref
 
 import spacy
-import pprint
 import neuralcoref
+import benepar
 
-# pretty printing for debugging purposes
-pp = pprint.PrettyPrinter()
+from benepar.spacy_plugin import BeneparComponent
 
 class Preprocessor:
     def __init__(self, input_text):
 
         # load spacy processor and add neuralcoref function
         nlp = spacy.load("en_core_web_sm")
+
         neuralcoref.add_to_pipe(nlp)
+
+        benepar.download('benepar_en2')
+        nlp.add_pipe(BeneparComponent("benepar_en2"))
 
         # define text (change to pipeline for final version)
         self.doc = nlp(input_text)
@@ -20,10 +23,6 @@ class Preprocessor:
         # process text
         self.processed_doc = self.process(self.doc)
         #self.coref = self.doc._.coref_clusters
-
-        # print processed texts (for testing only, delete for final version)
-        # print(self.processed_doc)
-        # print(self.coref)
 
     # process()
     # inputs: doc (string)
