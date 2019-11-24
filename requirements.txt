@@ -2,6 +2,10 @@ pip3 install -U spacy==2.1.0
 pip3 install -U spacy-lookups-data
 python3 -m spacy download en_core_web_md
 
+pip3 install cython numpy
+pip3 install tensorflow==1.15
+pip3 install benepar[cpu]
+
 pip3 install neuralcoref --no-binary neuralcoref
 
 pip3 install pyspellchecker
