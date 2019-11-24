@@ -46,7 +46,10 @@ class answer_question:
 
         # generate (similarity, question) list for each question
         candidates = []
-        for (sent, q_class, correct_answer) in self.wh_questions:
+        for question in self.wh_questions:
+            sent = question.q_string
+            q_class = question.q_class
+            correct_answer = question.q_answer
             og_candidate = nlp(str(sent))
             candidate = ' '.join([token.text for token in og_candidate if not token.is_stop])
             candidate = nlp(candidate)
@@ -120,7 +123,6 @@ for question in answer_question.q_list:
     best_matches = answer_question.find_best_matches(question_vector)
     answer = answer_question.answer_wh_question(question, best_matches)
     print(match[0], '\n', match[1], '\n', question, '\n', answer,'\n')
-
 
 
 
