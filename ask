@@ -22,21 +22,26 @@ class QuestionGenerator:
     def generateWhQuestions(self):
         output = []
 
-        output.extend(self.generate_existential_questions())
+        for pred in self.predicates:
+
+            # FIXME: patch to prevent errors. 
+            # should invalidate predicates without verbs
+            # and have a case for predicates with no objects.
+            if len(pred.verb) > 0 and pred.obj is not None and pred.subj is not None:
+
+                # make questions where answer is sentence subject
+                # getting last index of verb list *probably* gets the most operant verb
+                if pred.verb[-1].lemma_ == 'be':
+                    output.append(self.existential_q_from(pred))
+                
+                # make questions where answer is sentence object
+                output.append(self.simple_predicate_q_from(pred))
 
         # set to remove duplicates, list to remain subscriptable
         return list(set(output))
 
     def generate_existential_questions(self):
         output = []
-
-        for pred in self.predicates:
-            # FIXME: patch to prevent errors. 
-            # should invalid predicates without verbs
-            # and have a case for predicates with no objects.
-            if len(pred.verb) > 0 and pred.obj is not None and pred.subj is not None:
-                if pred.verb[0].lemma_ == 'be':
-                    output.append(self.existential_q_from(pred))
         
         return output
         
@@ -46,8 +51,17 @@ class QuestionGenerator:
         wh_word = predicate.wh_word
         obj = predicate.obj.text.strip()
 
-        raw_q = ' '.join([wh_word, vp, obj])
-        raw_q += '?'
+        raw_q = ' '.join([wh_word, vp, subj]) + '?'
+
+        return Question(raw_q, wh_word.upper(), obj)
+
+    def simple_predicate_q_from(self, predicate):
+        vp = ' '.join([verb.text.strip() for verb in predicate.verb])
+        subj = predicate.subj.text.strip()
+        wh_word = predicate.wh_word
+        obj = predicate.obj.text.strip()
+
+        raw_q = ' '.join([wh_word, vp, obj]) + '?'
 
         return Question(raw_q, wh_word.upper(), subj)
 
