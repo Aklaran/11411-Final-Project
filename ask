@@ -18,12 +18,24 @@ class QuestionGenerator:
         pf = PredicateFinder()
         self.predicates = pf.find_predicates(doc)
 
-    def generateWhQuestions(self, doc):
-        return
+    def generateWhQuestions(self):
+        output = []
+
+        output.extend(self.generate_existential_questions())
+            
 
         # set to remove duplicates, list to remain subscriptable
         # return list(set(output))
 
+    def generate_existential_questions(self):
+        output = []
+
+        for pred in self.predicates:
+            if pred.verb.lemma_ == 'be':
+                output.append(self.existential_q_from(pred))
+        
+    def existential_q_from(self, predicate):
+        return
 
     def generateEntityWhQuestion(self, coref_cluster):
         entity = coref_cluster.main
@@ -59,20 +71,6 @@ class QuestionGenerator:
             text = chunk.text
 
         return wh_word + ' ' + linking_verb + " " + text + "?"
-
-    def replaceWhSubject(self, subj):
-        # dictionary to map from entity types to wh- pronouns
-        switcher = {
-            'PERSON': 'Who',
-            'GPE': 'What',
-            'LOC': 'Where',
-            'ORG': 'What',
-            'FC': 'What',
-            'EVENT': 'What',
-            'WORK_OF_ART': 'What',
-        }
-
-        return switcher.get(subj.ent_type_, None)
 
     def compileQuestionString(self, lst):
         output = lst[0]

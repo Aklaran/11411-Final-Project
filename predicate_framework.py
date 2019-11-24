@@ -4,6 +4,15 @@ from utils import *
 
 PRED_PATTERN = ['NP', 'VP', '.']
 
+WH_MAP = { 'PERSON': 'Who',
+           'GPE': 'What',
+           'LOC': 'Where',
+           'ORG': 'What',
+           'FC': 'What',
+           'EVENT': 'What',
+           'WORK_OF_ART': 'What' 
+         }
+
 class PredicateFinder:
     """Finds all the predicates in a document."""
     
@@ -14,7 +23,8 @@ class PredicateFinder:
             predicates.extend(self.find_predicates_in_sentence([], sentence))
 
         for pred in predicates:
-            print(pred.subj)
+            print(pred.subj.text.strip(), end=' |')
+            print(pred.wh_word)
             print(pred.verb)
             print(pred.obj)
             print()
@@ -47,11 +57,20 @@ class PredicateFinder:
 
             if child._.labels[0] != PRED_PATTERN[i]:
                return False
+
         # has no children - not a predicate
         return False
 
 class Predicate:
-    """Holds information about a predicate for easy reconstruction."""
+    """
+    Holds information about a predicate for easy reconstruction.
+    
+    Properties:
+        subj: The subject of the predicate
+        wh_word: the 'wh' word corresponding to the predicate's subject
+        verb: The main verb of the predicate
+        obj: the object of the predicate
+    """
 
     def __init__(self, sentence):
         # all 'find' methods assume the input to be a simple predicate
@@ -59,15 +78,20 @@ class Predicate:
         # and the VP conforms to (VP (V) (NP)) or (VP (V))
 
         for i, child in enumerate(sentence._.children):
+
             if i == 0:
                 self.subj = self.__find_subject(child)
-            
+                self.wh_word = self.__wh_word_from(self.subj)
+
             if i == 1:
                 self.verb = self.__find_verb(child, [])
                 self.obj = self.__find_object(child)
 
     def __find_subject(self, root):
         return get_entity(root)
+    
+    def __wh_word_from(self, span):
+        return WH_MAP.get(span[0].ent_type_, 'What')
 
     def __find_verb(self, root, output):
         # base case: root is a verb
