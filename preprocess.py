@@ -1,29 +1,28 @@
 # this is a text preprocessor module built using spacy and neuralcoref
 
 import spacy
-import pprint
 import neuralcoref
+import benepar
 
-# pretty printing for debugging purposes
-pp = pprint.PrettyPrinter()
+from benepar.spacy_plugin import BeneparComponent
 
 class Preprocessor:
     def __init__(self, input_text):
 
         # load spacy processor and add neuralcoref function
         nlp = spacy.load("en_core_web_sm")
-        neuralcoref.add_to_pipe(nlp)
+
+        neuralcoref.add_to_pipe(nlp, greedyness=0.53125)
+
+        benepar.download('benepar_en2')
+        nlp.add_pipe(BeneparComponent("benepar_en2"))
 
         # define text (change to pipeline for final version)
         self.doc = nlp(input_text)
 
         # process text
         self.processed_doc = self.process(self.doc)
-        self.coref = self.doc._.coref_clusters
-
-        # print processed texts (for testing only, delete for final version)
-        # print(self.processed_doc)
-        # print(self.coref)
+        #self.coref = self.doc._.coref_clusters
 
     # process()
     # inputs: doc (string)
@@ -56,11 +55,11 @@ class Preprocessor:
             sentence = []
             for token in sent:
 
-                # check for token corefs
-                if token._.in_coref:
-                    coref = token._.coref_clusters
-                else:
-                    coref = None
+                # # check for token corefs
+                # if token._.in_coref:
+                #     coref = token._.coref_clusters
+                # else:
+                #     coref = None
                 
                 # determine entity type and iob
                 ent_iob = token.ent_iob_
@@ -79,7 +78,7 @@ class Preprocessor:
                     'stop': token.is_stop,
                     'ent_iob': ent_iob,
                     'ent_type': ent_type,
-                    'coref': coref,
+                    #'coref': coref,
 
                     ##for dependency parse: need to consider merging chunk dict as well
                     'head_text': token.head.text,
