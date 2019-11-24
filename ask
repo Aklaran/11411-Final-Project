@@ -6,6 +6,7 @@ import os
 import string
 
 import preprocess as st
+from predicate_framework import PredicateFramework as Predicate
 
 import pprint as pprint
 
@@ -22,8 +23,11 @@ class QuestionGenerator:
             more_preds = self.find_predicates([], sent)
             predicates.extend(more_preds)
 
-        pp.pprint(predicates)
-        print(len(predicates))
+        for pred in predicates:
+            print(pred.subj)
+            print(pred.verb)
+            print(pred.obj)
+            print()
 
         # set to remove duplicates, list to remain subscriptable
         # return list(set(output))
@@ -31,7 +35,7 @@ class QuestionGenerator:
     def find_predicates(self, predicates, root):
         # base case (also checked at every level)
         if self.is_predicate(root):
-            predicates.append(root)
+            predicates.append(Predicate(root))
 
         # recursive case - check children for predicates
         for child in root._.children:
@@ -54,7 +58,6 @@ class QuestionGenerator:
 
             if child._.labels[0] != PRED_PATTERN[i]:
                return False
-
         # has no children - not a predicate
         return False
 
