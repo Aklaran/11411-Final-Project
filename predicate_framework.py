@@ -7,37 +7,35 @@ class PredicateFramework:
         # that is, its syntax labels are (S (NP) (VP) (.))
         # and the VP conforms to (VP (V) (NP)) or (VP (V))
 
-        # FIXME: in passive or two-word verb constructions,
-        # the predicate returned will not make sense.
-
         for i, child in enumerate(sentence._.children):
             if i == 0:
                 self.subj = self.find_subject(child)
             
             if i == 1:
-                self.verb = self.find_verb(child)
+                self.verb = self.find_verb(child, [])
                 self.obj = self.find_object(child)
 
     def find_subject(self, root):
         return root
 
-    def find_verb(self, root):
+    def find_verb(self, root, output):
         # base case: root is a verb
-        if constituent_tag(root._.parse_string).startswith('VB'):
-            return root
+        if is_verb(root):
+            output.append(root)
 
         # recursive case: find the first verb of the children
         for child in root._.children:
-            cand = self.find_verb(child)
-            if cand: 
-                return cand
+            if is_verb_phrase(child):
+                self.find_verb(child, output)
+            else:
+                return output
 
         # base case: that all failed and this predicate is a prediCANT!
-        return None
+        return output
 
     def find_object(self, root):
         print(root._.parse_string)
-        if constituent_tag(root._.parse_string).startswith('N'):
+        if is_noun(root):
             return root
 
         for child in root._.children:
