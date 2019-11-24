@@ -7,6 +7,7 @@ import string
 
 import preprocess as st
 from predicate_framework import Predicate, PredicateFinder
+from question import Question
 
 import pprint as pprint
 
@@ -22,35 +23,48 @@ class QuestionGenerator:
         output = []
 
         output.extend(self.generate_existential_questions())
-            
 
         # set to remove duplicates, list to remain subscriptable
-        # return list(set(output))
+        return list(set(output))
 
     def generate_existential_questions(self):
         output = []
 
         for pred in self.predicates:
-            if pred.verb.lemma_ == 'be':
-                output.append(self.existential_q_from(pred))
+            # FIXME: patch to prevent errors. 
+            # should invalid predicates without verbs
+            # and have a case for predicates with no objects.
+            if len(pred.verb) > 0 and pred.obj is not None and pred.subj is not None:
+                if pred.verb[0].lemma_ == 'be':
+                    output.append(self.existential_q_from(pred))
+        
+        return output
         
     def existential_q_from(self, predicate):
-        return
+        vp = ' '.join([verb.text.strip() for verb in predicate.verb])
+        subj = predicate.subj.text.strip()
+        wh_word = predicate.wh_word
+        obj = predicate.obj.text.strip()
 
-    def generateEntityWhQuestion(self, coref_cluster):
-        entity = coref_cluster.main
+        raw_q = ' '.join([wh_word, vp, obj])
+        raw_q += '?'
 
-        # TODO: get right plurality
-        # TODO: truecasing (see https://towardsdatascience.com/truecasing-in-natural-language-processing-12c4df086c21)
-        #       for now, just using .title() to capitalize every word
+        return Question(raw_q, wh_word.upper(), subj)
 
-        # entity[0] gives token, so can call ent_type_
-        wh_word = self.replaceWhSubject(entity[0])
+    # def generateEntityWhQuestion(self, coref_cluster):
+    #     entity = coref_cluster.main
 
-        if wh_word: 
-            return (wh_word + ' is ' + entity.text.title() + "?")
+    #     # TODO: get right plurality
+    #     # TODO: truecasing (see https://towardsdatascience.com/truecasing-in-natural-language-processing-12c4df086c21)
+    #     #       for now, just using .title() to capitalize every word
+
+    #     # entity[0] gives token, so can call ent_type_
+    #     wh_word = self.replaceWhSubject(entity[0])
+
+    #     if wh_word: 
+    #         return (wh_word + ' is ' + entity.text.title() + "?")
         
-        return None
+    #     return None
     
     def generateWhObjQuestion(self, chunk, subject):
         wh_word = self.replaceWhSubject(subject)
@@ -144,12 +158,15 @@ if __name__ == "__main__":
     # Instantiate our question generator and make some questions
     question_generator = QuestionGenerator(processed_doc)
 
-    # wh_questions = question_generator.generateWhQuestions()
+    wh_questions = question_generator.generateWhQuestions()
     # for i in range(N_QUESTIONS):
     #     j = i % len(wh_questions)
     #     print(wh_questions[j])
     
     # debug line; remove for prod
-    # print()
-    # for question in wh_questions: 
-    #     print(question)
+    print()
+    for question in wh_questions: 
+        print(question.q_string)
+        print(question.q_class)
+        print(question.q_answer)
+        print()

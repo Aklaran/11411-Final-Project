@@ -22,12 +22,12 @@ class PredicateFinder:
         for sentence in doc.sents:
             predicates.extend(self.find_predicates_in_sentence([], sentence))
 
-        for pred in predicates:
-            print(pred.subj.text.strip(), end=' |')
-            print(pred.wh_word)
-            print(pred.verb)
-            print(pred.obj)
-            print()
+        # for pred in predicates:
+        #     print(pred.subj.text.strip(), end=' |')
+        #     print(pred.wh_word)
+        #     print(pred.verb)
+        #     print(pred.obj)
+        #     print()
         
         return predicates
 
