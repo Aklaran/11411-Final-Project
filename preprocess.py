@@ -12,7 +12,7 @@ class Preprocessor:
         # load spacy processor and add neuralcoref function
         nlp = spacy.load("en_core_web_sm")
 
-        neuralcoref.add_to_pipe(nlp)
+        neuralcoref.add_to_pipe(nlp, greedyness=0.53125)
 
         benepar.download('benepar_en2')
         nlp.add_pipe(BeneparComponent("benepar_en2"))
