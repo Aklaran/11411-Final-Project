@@ -1,6 +1,57 @@
+'''Helpers for finding and processing predicates.'''
+
 from utils import *
 
-class PredicateFramework:
+PRED_PATTERN = ['NP', 'VP', '.']
+
+class PredicateFinder:
+    """Finds all the predicates in a document."""
+    
+    def find_predicates(self, doc):
+        predicates = []
+
+        for sentence in doc.sents:
+            predicates.extend(self.find_predicates_in_sentence([], sentence))
+
+        for pred in predicates:
+            print(pred.subj)
+            print(pred.verb)
+            print(pred.obj)
+            print()
+        
+        return predicates
+
+    def find_predicates_in_sentence(self, predicates, root):
+        # base case (also checked at every level)
+        if self.is_predicate(root):
+            predicates.append(Predicate(root))
+
+        # recursive case - check children for predicates
+        for child in root._.children:
+            self.find_predicates_in_sentence(predicates, child)
+        
+        return predicates
+    
+    def is_predicate(self, sentence):
+
+        for i, child in enumerate(sentence._.children):
+
+            # handle empty label case
+            if len(child._.labels) == 0:
+                # if in final pos, check for period (periods have empty labels)
+                if i == len(PRED_PATTERN) - 1:
+                    return child.text in ['.', ',', ';', ':']
+
+                # otherwise it's just out of place
+                return False
+
+            if child._.labels[0] != PRED_PATTERN[i]:
+               return False
+        # has no children - not a predicate
+        return False
+
+class Predicate:
+    """Holds information about a predicate for easy reconstruction."""
 
     def __init__(self, sentence):
         # all 'find' methods assume the input to be a simple predicate
@@ -9,16 +60,16 @@ class PredicateFramework:
 
         for i, child in enumerate(sentence._.children):
             if i == 0:
-                self.subj = self.find_subject(child)
+                self.subj = self.__find_subject(child)
             
             if i == 1:
-                self.verb = self.find_verb(child, [])
-                self.obj = self.find_object(child)
+                self.verb = self.__find_verb(child, [])
+                self.obj = self.__find_object(child)
 
-    def find_subject(self, root):
-        return root
+    def __find_subject(self, root):
+        return get_entity(root)
 
-    def find_verb(self, root, output):
+    def __find_verb(self, root, output):
         # base case: root is a verb
         if is_verb(root):
             output.append(root)
@@ -26,21 +77,27 @@ class PredicateFramework:
         # recursive case: find the first verb of the children
         for child in root._.children:
             if is_verb_phrase(child):
-                self.find_verb(child, output)
+                self.__find_verb(child, output)
             else:
                 return output
 
-        # base case: that all failed and this predicate is a prediCANT!
         return output
 
-    def find_object(self, root):
+    def __find_object(self, root):
+        # FIXME: prepositions and other information-holding extenders
+        #        are not yet accounted for.
+
         print(root._.parse_string)
+
+        # base case: root is a noun
         if is_noun(root):
             return root
 
+        # recursive case: find the first noun in the children
         for child in root._.children:
-            cand = self.find_object(child)
+            cand = self.__find_object(child)
             if cand:
                 return cand
 
+        # if nothing was found, could be an intransitive verb
         return None

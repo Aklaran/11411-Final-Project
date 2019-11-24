@@ -6,60 +6,23 @@ import os
 import string
 
 import preprocess as st
-from predicate_framework import PredicateFramework as Predicate
+from predicate_framework import Predicate, PredicateFinder
 
 import pprint as pprint
-
-PRED_PATTERN = ['NP', 'VP', '.']
 
 pp = pprint.PrettyPrinter()
 
 class QuestionGenerator:
 
+    def __init__(self, doc):
+        pf = PredicateFinder()
+        self.predicates = pf.find_predicates(doc)
+
     def generateWhQuestions(self, doc):
-        predicates = []
-
-        for sent in doc.sents:
-            more_preds = self.find_predicates([], sent)
-            predicates.extend(more_preds)
-
-        for pred in predicates:
-            print(pred.subj)
-            print(pred.verb)
-            print(pred.obj)
-            print()
+        return
 
         # set to remove duplicates, list to remain subscriptable
         # return list(set(output))
-    
-    def find_predicates(self, predicates, root):
-        # base case (also checked at every level)
-        if self.is_predicate(root):
-            predicates.append(Predicate(root))
-
-        # recursive case - check children for predicates
-        for child in root._.children:
-            self.find_predicates(predicates, child)
-        
-        return predicates
-    
-    def is_predicate(self, sentence):
-
-        for i, child in enumerate(sentence._.children):
-
-            # handle empty label case
-            if len(child._.labels) == 0:
-                # if in final pos, check for period (periods have empty labels)
-                if i == len(PRED_PATTERN) - 1:
-                    return child.text in ['.', ',', ';', ':']
-
-                # otherwise it's just out of place
-                return False
-
-            if child._.labels[0] != PRED_PATTERN[i]:
-               return False
-        # has no children - not a predicate
-        return False
 
 
     def generateEntityWhQuestion(self, coref_cluster):
@@ -181,14 +144,14 @@ if __name__ == "__main__":
     enablePrint()
 
     # Instantiate our question generator and make some questions
-    question_generator = QuestionGenerator()
+    question_generator = QuestionGenerator(processed_doc)
 
-    wh_questions = question_generator.generateWhQuestions(processed_doc)
-    for i in range(N_QUESTIONS):
-        j = i % len(wh_questions)
-        print(wh_questions[j])
+    # wh_questions = question_generator.generateWhQuestions()
+    # for i in range(N_QUESTIONS):
+    #     j = i % len(wh_questions)
+    #     print(wh_questions[j])
     
     # debug line; remove for prod
-    print()
-    for question in wh_questions: 
-        print(question)
+    # print()
+    # for question in wh_questions: 
+    #     print(question)
