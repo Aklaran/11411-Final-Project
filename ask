@@ -8,6 +8,7 @@ import string
 import preprocess as st
 from predicate_framework import Predicate, PredicateFinder
 from question import Question
+from utils import *
 
 import pprint as pprint
 
@@ -23,115 +24,48 @@ class QuestionGenerator:
         output = []
 
         for pred in self.predicates:
-
-            # FIXME: patch to prevent errors. 
-            # should invalidate predicates without verbs
-            # and have a case for predicates with no objects.
-            if len(pred.verb) > 0 and pred.obj is not None and pred.subj is not None:
-
-                # make questions where answer is sentence subject
-                # getting last index of verb list *probably* gets the most operant verb
-                if pred.verb[-1].lemma_ == 'be':
-                    output.append(self.existential_q_from(pred))
-                
-                # make questions where answer is sentence object
-                output.append(self.simple_predicate_q_from(pred))
+            # make questions where answer is sentence subject
+            # getting last index of verb list *probably* gets the most operant verb
+            if pred.verb[-1].lemma_ == 'be':
+                output.append(self.existential_q_from(pred))
+            
+            # make questions where answer is sentence object
+            output.append(self.simple_predicate_q_from(pred))
 
         # set to remove duplicates, list to remain subscriptable
+        output = filter(None, output) # filter out invalid questions
         return list(set(output))
-
-    def generate_existential_questions(self):
-        output = []
-        
-        return output
         
     def existential_q_from(self, predicate):
-        vp = ' '.join([verb.text.strip() for verb in predicate.verb])
-        subj = predicate.subj.text.strip()
+        vp = str_from_token_lst(predicate.verb).strip()
+        subj = str_from_token_lst(predicate.subj).strip()
         wh_word = predicate.wh_word
-        obj = predicate.obj.text.strip()
+        obj = str_from_token_lst(predicate.obj).strip()
 
-        raw_q = ' '.join([wh_word, vp, subj]) + '?'
+        q_str = ' '.join([wh_word, vp, subj]) + '?'
 
-        return Question(raw_q, wh_word.upper(), obj)
+        question = Question(q_str, wh_word.upper(), obj)
+
+        if question.is_valid():
+            return question
+
+        return None
 
     def simple_predicate_q_from(self, predicate):
-        vp = ' '.join([verb.text.strip() for verb in predicate.verb])
-        subj = predicate.subj.text.strip()
+        vp = str_from_token_lst(predicate.verb).strip()
+        subj = str_from_token_lst(predicate.subj).strip()
+        subj_ent = str_from_token_lst(predicate.subj_ent).strip()
         wh_word = predicate.wh_word
-        obj = predicate.obj.text.strip()
+        obj = str_from_token_lst(predicate.obj).strip()
 
-        raw_q = ' '.join([wh_word, vp, obj]) + '?'
+        q_str = ' '.join([wh_word, vp, obj]) + '?'
 
-        return Question(raw_q, wh_word.upper(), subj)
+        question = Question(q_str, wh_word.upper(), subj_ent)
 
-    # def generateEntityWhQuestion(self, coref_cluster):
-    #     entity = coref_cluster.main
+        if question.is_valid():
+            return question
 
-    #     # TODO: get right plurality
-    #     # TODO: truecasing (see https://towardsdatascience.com/truecasing-in-natural-language-processing-12c4df086c21)
-    #     #       for now, just using .title() to capitalize every word
-
-    #     # entity[0] gives token, so can call ent_type_
-    #     wh_word = self.replaceWhSubject(entity[0])
-
-    #     if wh_word: 
-    #         return (wh_word + ' is ' + entity.text.title() + "?")
-        
-    #     return None
-    
-    def generateWhObjQuestion(self, chunk, subject):
-        wh_word = self.replaceWhSubject(subject)
-        if not wh_word: wh_word = "What" # default
-
-        # change 'to be' inflection for plural words
-        # spacy.Token.tag denotes plural words with a final 'S'
-        if chunk.root.tag_.endswith('S'):
-            linking_verb = 'are'
-        else:
-            linking_verb = 'is'
-
-        # only capitalize proper names
-        # using non-null entity types as a proxy
-        if chunk.root.ent_type_ == '':
-            text = chunk.text.lower()
-        else:
-            text = chunk.text
-
-        return wh_word + ' ' + linking_verb + " " + text + "?"
-
-    def compileQuestionString(self, lst):
-        output = lst[0]
-
-        num_quotes = 0
-
-        no_space_after = set(['$', '(', '[', '{', '-'])
-
-        no_space_before = set(string.punctuation) - set(['$', '(', '[', '{', '"'])
-
-        for i in range(1, len(lst)):
-            token = lst[i]
-            last = lst[i-1]
-
-            if token == '"':
-                num_quotes += 1
-
-                if num_quotes % 2 != 0:
-                    output += ' '
-
-            elif last not in no_space_after and token[0] not in no_space_before:
-                if last != '"' or num_quotes% 2 == 0:
-                    output += ' '
-
-            output += token
-
-
-        if output[-1] not in ['"', "'"] and output[-1] in string.punctuation:
-            output = output[:-1]
-
-        output += '?'
-
-        return output
+        return None
 
 def blockPrint():
     sys.stdout = open(os.devnull, 'w')
@@ -142,7 +76,7 @@ def enablePrint():
 if __name__ == "__main__":
     # Suppress printing until we show output
     # REMOVE THIS IF YOU'RE HAVING PROBLEMS
-    blockPrint()
+    # blockPrint()
 
     # Ensure 2 arguments
     if len(sys.argv) != 3:
@@ -164,18 +98,21 @@ if __name__ == "__main__":
         text = file.read()
 
     # Instantiate our preprocessor and get the processed doc
+
+    # DEBUG
+    #preprocessor = st.Preprocessor('The Guardian suggested that the goal "might become the most famous goal in Fulham\'s history". The goal propelled Dempsey to become the most prolific USA goalscorer in the Premier League, passing Fulham legend and fellow American Brian McBride. Music\nOne of Dempsey\'s passions outside of soccer is hip hop music. New England Revolution\nNew England Revolution selected Clint Dempsey eighth overall in the 2004 MLS SuperDraft.')
+    # /DEBUG
+
     preprocessor = st.Preprocessor(text)
     processed_doc = preprocessor.doc
 
-    enablePrint()
-
-    # Instantiate our question generator and make some questions
+    # # Instantiate our question generator and make some questions
     question_generator = QuestionGenerator(processed_doc)
 
     wh_questions = question_generator.generateWhQuestions()
-    # for i in range(N_QUESTIONS):
-    #     j = i % len(wh_questions)
-    #     print(wh_questions[j])
+    # # for i in range(N_QUESTIONS):
+    # #     j = i % len(wh_questions)
+    # #     print(wh_questions[j])
     
     # debug line; remove for prod
     print()
