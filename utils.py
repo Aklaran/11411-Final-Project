@@ -2,6 +2,24 @@
 
 import string
 
+# pattern to match for simple predicates
+PRED_PATTERN = ['NP', 'VP', '.']
+
+# Wh- words corresponding to different entity types
+WH_MAP = { 'PERSON': 'Who',
+           'GPE': 'What',
+           'LOC': 'Where',
+           'ORG': 'What',
+           'FC': 'What',
+           'EVENT': 'What',
+           'WORK_OF_ART': 'What' 
+         }
+
+# Berkeley Neural Parser token tags that we will include in noun phrases
+NOUN_TAGS = ['NP', 'NNP', 'NNS', 'NN', 'IN', 'POS', 'DT', 'CD', 'TO']
+
+VERB_TAGS = ['VBN', 'VBZ', 'VBD', 'ADVP']
+
 def constituent_tag(parse_string):
     '''
     The PTB tag for the given constituent.
@@ -16,13 +34,15 @@ def constituent_tag(parse_string):
     return parse_string.split()[0][1:]
 
 def is_verb(span):
-    return constituent_tag(span._.parse_string).startswith('VB')
+    # Excludes the VP (verb phrase) tag so we only get single tokens
+    return constituent_tag(span._.parse_string) in VERB_TAGS
 
 def is_verb_phrase(span):
+    # Includes all possible verb phrase tags
     return constituent_tag(span._.parse_string).startswith('V')
 
 def is_noun(span):
-    return constituent_tag(span._.parse_string).startswith('N')
+    return constituent_tag(span._.parse_string) in NOUN_TAGS
 
 def entity_from_span(span):
     if span._.is_coref:
@@ -34,6 +54,10 @@ def entity_from_span_lst(lst):
     for span in lst:
         if span._.is_coref:
             return [span._.coref_cluster.main]
+        
+        for token in span:
+            if token._.in_coref:
+                return [token._.coref_clusters[0].main]
     
     return lst
 
