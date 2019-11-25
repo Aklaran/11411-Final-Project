@@ -76,6 +76,7 @@ class Predicate:
         # all 'find' methods assume the input to be a simple predicate
         # that is, its syntax labels are (S (NP) (VP) (.))
         # and the VP conforms to (VP (V) (NP)) or (VP (V)))
+
         for i, child in enumerate(sentence._.children):
 
             if i == 0:
@@ -103,6 +104,7 @@ class Predicate:
                 self.__find_verb(child, output)
             else:
                 return output
+                
         return output
 
     def __find_object(self, root):

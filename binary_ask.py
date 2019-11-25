@@ -5,10 +5,12 @@ import sys
 import os
 import string
 
+blockPrint()
 import preprocess as st
 from predicate_framework import Predicate, PredicateFinder
 from question import Question
 from nltk.stem.wordnet import WordNetLemmatizer
+enablePrint()
 
 import pprint as pprint
 
@@ -52,23 +54,15 @@ class BinaryQuestionGenerator:
         # raw_q = ' '.join([wh_word, vp, obj]) + '?'
         v_lemmatized = self.wnl.lemmatize(vp, 'v')
         sub_lemmatized = self.wnl.lemmatize(subj, 'n')
-        if vp is not v_lemmatized:
-            # past tense verbs
-            if v_lemmatized is not 'is' and v_lemmatized is not 'are':
-                # example: Did Nicholas Cage steal the Declaration of Indepenedence?
-                raw_q = ' '.join(['Did', subj, v_lemmatized, obj])
-            else:
-                # is-based verb
-                if sub is sub_lemmatized:
-                    raw_q = ' '.join(['Is', subj, obj])
-                else:
-                    raw_q = ' '.join(['Are', subj, obj])
+        if v_lemmatized is not 'is' and v_lemmatized is not 'are':
+            # example: Did Nicholas Cage steal the Declaration of Indepenedence?
+            raw_q = ' '.join(['Did', subj, v_lemmatized, obj])
         else:
-            # present tense verbs
-            if subj is not sub_lemmatized and vp is 'are':
-                raw_q = ' '.join(['Are', sub_lemmatized, obj])
-            elif subj is sub_lemmatized and vp is 'is':
+            # is-based verb
+            if sub is sub_lemmatized:
                 raw_q = ' '.join(['Is', sub_lemmatized, obj])
+            else:
+                raw_q = ' '.join(['Are', subj, obj])
 
         if len(after_obj)>0:
             raw_q += " " + after_obj
@@ -109,14 +103,11 @@ if __name__ == "__main__":
     # Instantiate our question generator and make some questions
     question_generator = BinaryQuestionGenerator(text)
 
-    wh_questions = question_generator.generateBinaryQuestions()
-    # for i in range(N_QUESTIONS):
-    #     j = i % len(wh_questions)
-    #     print(wh_questions[j])
+    binary_questions = question_generator.generateBinaryQuestions()
     
     # debug line; remove for prod
     print()
-    for question in wh_questions: 
+    for question in binary_questions: 
         print(question.q_string)
         print(question.q_class)
         print(question.q_answer)
