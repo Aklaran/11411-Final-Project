@@ -23,12 +23,12 @@ class PredicateFinder:
             predicates.extend(self.find_predicates_in_sentence([], sentence))
 
         # DEBUG
-        # for pred in predicates:
-        #     print(pred.subj)
-        #     print(pred.wh_word)
-        #     print(pred.verb)
-        #     print(pred.obj)
-        #     print()
+        for pred in predicates:
+            print(pred.subj)
+            print(pred.wh_word)
+            print(pred.verb)
+            print(pred.obj)
+            print()
         # /DEBUG
 
         return predicates
@@ -36,17 +36,17 @@ class PredicateFinder:
     def find_predicates_in_sentence(self, predicates, root):
         # base case (also checked at every level)
         if self.is_predicate(root):
-            print(root)
-            print(root._.parse_string)
+            # print(root)
+            # print(root._.parse_string)
 
             pred = Predicate(root)
 
-            print(pred.subj)
-            print(pred.wh_word)
-            print(pred.verb)
-            print(pred.obj)
-            print(pred.is_valid())
-            print()
+            # print(pred.subj)
+            # print(pred.wh_word)
+            # print(pred.verb)
+            # print(pred.obj)
+            # print(pred.is_valid())
+            # print()
 
             if pred.is_valid():
                 predicates.append(pred) 
@@ -98,7 +98,7 @@ class Predicate:
         subj (list(Span)): The subject of the predicate
         wh_word (str): the 'wh' word corresponding to the predicate's subject
         verb (list(Span)): The main verb of the predicate
-        obj (Span): the object of the predicate
+        obj (list(Span)): the object of the predicate
     """
 
     def __init__(self, sentence):
@@ -111,7 +111,7 @@ class Predicate:
             if i == 0:
                 self.subj = self.__find_subject(child, [])
                 self.subj_ent = entity_from_span_lst(self.subj)
-                self.wh_word = self.__wh_word_from(self.subj)
+                self.wh_word = wh_word_from(self.subj_ent)
                 
             if i == 1:
                 self.verb = self.__find_verb(child, [])
@@ -144,10 +144,6 @@ class Predicate:
         
         # un-reverse the list
         return output[::-1]
-    
-    def __wh_word_from(self, lst):
-        # Get the corresponding wh word, defaults to 'What'
-        return WH_MAP.get(lst[0][0].ent_type_, 'What')
 
     def __find_verb(self, root, output):
         # recursive case: find the first verb of the children

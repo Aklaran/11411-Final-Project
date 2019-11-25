@@ -1,6 +1,7 @@
 '''Utility functions for question asking.'''
 
 import string
+from itertools import chain
 
 # pattern to match for simple predicates
 PRED_PATTERN = ['NP', 'VP', '.']
@@ -19,6 +20,14 @@ WH_MAP = { 'PERSON': 'Who',
 NOUN_TAGS = ['NP', 'NNP', 'NNS', 'NN', 'IN', 'POS', 'DT', 'CD', 'TO', 'PP', 'PRT', 'JJ']
 
 VERB_TAGS = ['VBN', 'VBZ', 'VBD', 'VBP', 'ADVP']
+
+PERSONAL_PRONOUNS = ['HE', 'SHE', 'HIM', 'HER', 'THEY', 'THEM']
+
+IMPERSONAL_PRONOUNS = ['IT']
+
+DEMONSTRATIVES = ['THIS', 'THAT', 'THOSE', 'THESE']
+
+STOP_WORDS = set(chain(PERSONAL_PRONOUNS, IMPERSONAL_PRONOUNS, DEMONSTRATIVES))
 
 def constituent_tag(parse_string):
     '''
@@ -68,6 +77,20 @@ def good_length_obj(obj):
         return True
     
     return len(list(lst[0])) > 2
+
+def is_stop_word(word):
+    return word in STOP_WORDS
+
+def wh_word_from(lst):
+    # Get the corresponding wh word, defaults to 'What'
+    # Input: list(Span)
+
+    for span in lst:
+        for token in span:
+            if token.text.upper() in PERSONAL_PRONOUNS:
+                return 'Who'
+            
+    return WH_MAP.get(lst[0][0].ent_type_, 'What')
 
 def str_from_token_lst(lst):
     output = lst[0].text

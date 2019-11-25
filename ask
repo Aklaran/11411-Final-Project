@@ -24,21 +24,16 @@ class QuestionGenerator:
         output = []
 
         for pred in self.predicates:
-
-            # FIXME: patch to prevent errors. 
-            # should invalidate predicates without verbs
-            # and have a case for predicates with no objects.
-            if len(pred.verb) > 0 and pred.obj is not None and pred.subj is not None:
-
-                # make questions where answer is sentence subject
-                # getting last index of verb list *probably* gets the most operant verb
-                if pred.verb[-1].lemma_ == 'be':
-                    output.append(self.existential_q_from(pred))
-                
-                # make questions where answer is sentence object
-                output.append(self.simple_predicate_q_from(pred))
+            # make questions where answer is sentence subject
+            # getting last index of verb list *probably* gets the most operant verb
+            if pred.verb[-1].lemma_ == 'be':
+                output.append(self.existential_q_from(pred))
+            
+            # make questions where answer is sentence object
+            output.append(self.simple_predicate_q_from(pred))
 
         # set to remove duplicates, list to remain subscriptable
+        output = filter(None, output) # filter out invalid questions
         return list(set(output))
         
     def existential_q_from(self, predicate):
@@ -47,9 +42,14 @@ class QuestionGenerator:
         wh_word = predicate.wh_word
         obj = str_from_token_lst(predicate.obj).strip()
 
-        raw_q = ' '.join([wh_word, vp, subj]) + '?'
+        q_str = ' '.join([wh_word, vp, subj]) + '?'
 
-        return Question(raw_q, wh_word.upper(), obj)
+        question = Question(q_str, wh_word.upper(), obj)
+
+        if question.is_valid():
+            return question
+
+        return None
 
     def simple_predicate_q_from(self, predicate):
         vp = str_from_token_lst(predicate.verb).strip()
@@ -58,9 +58,14 @@ class QuestionGenerator:
         wh_word = predicate.wh_word
         obj = str_from_token_lst(predicate.obj).strip()
 
-        raw_q = ' '.join([wh_word, vp, obj]) + '?'
+        q_str = ' '.join([wh_word, vp, obj]) + '?'
 
-        return Question(raw_q, wh_word.upper(), subj_ent)
+        question = Question(q_str, wh_word.upper(), subj_ent)
+
+        if question.is_valid():
+            return question
+
+        return None
 
 def blockPrint():
     sys.stdout = open(os.devnull, 'w')
@@ -110,9 +115,9 @@ if __name__ == "__main__":
     # #     print(wh_questions[j])
     
     # debug line; remove for prod
-    # print()
-    # for question in wh_questions: 
-    #     print(question.q_string)
-    #     print(question.q_class)
-    #     print(question.q_answer)
-    #     print()
+    print()
+    for question in wh_questions: 
+        print(question.q_string)
+        print(question.q_class)
+        print(question.q_answer)
+        print()
