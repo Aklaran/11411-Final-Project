@@ -5,12 +5,10 @@ import sys
 import os
 import string
 
-blockPrint()
 import preprocess as st
 from predicate_framework import Predicate, PredicateFinder
 from question import Question
 from nltk.stem.wordnet import WordNetLemmatizer
-enablePrint()
 
 import pprint as pprint
 
@@ -53,16 +51,21 @@ class BinaryQuestionGenerator:
 
         # raw_q = ' '.join([wh_word, vp, obj]) + '?'
         v_lemmatized = self.wnl.lemmatize(vp, 'v')
-        sub_lemmatized = self.wnl.lemmatize(subj, 'n')
-        if v_lemmatized is not 'is' and v_lemmatized is not 'are':
+        subj_lemmatized = self.wnl.lemmatize(subj, 'n')
+        if v_lemmatized != 'be':
             # example: Did Nicholas Cage steal the Declaration of Indepenedence?
             raw_q = ' '.join(['Did', subj, v_lemmatized, obj])
         else:
             # is-based verb
-            if sub is sub_lemmatized:
-                raw_q = ' '.join(['Is', sub_lemmatized, obj])
+            if vp == 'is':
+                raw_q = ' '.join(['Is', subj_lemmatized, obj])
+            elif vp == 'are':
+                    raw_q = ' '.join(['Are', subj, obj])
             else:
-                raw_q = ' '.join(['Are', subj, obj])
+                if subj == subj_lemmatized:
+                    raw_q = ' '.join(['Was', subj_lemmatized, obj])
+                else:
+                    raw_q = ' '.join(['Were', subj, obj])
 
         if len(after_obj)>0:
             raw_q += " " + after_obj
@@ -75,6 +78,7 @@ def blockPrint():
 
 def enablePrint():
     sys.stdout = sys.__stdout__
+
 
 if __name__ == "__main__":
     # Suppress printing until we show output
