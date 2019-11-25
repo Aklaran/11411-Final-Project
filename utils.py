@@ -16,9 +16,9 @@ WH_MAP = { 'PERSON': 'Who',
          }
 
 # Berkeley Neural Parser token tags that we will include in noun phrases
-NOUN_TAGS = ['NP', 'NNP', 'NNS', 'NN', 'IN', 'POS', 'DT', 'CD', 'TO']
+NOUN_TAGS = ['NP', 'NNP', 'NNS', 'NN', 'IN', 'POS', 'DT', 'CD', 'TO', 'PP', 'PRT', 'JJ']
 
-VERB_TAGS = ['VBN', 'VBZ', 'VBD', 'ADVP']
+VERB_TAGS = ['VBN', 'VBZ', 'VBD', 'VBP', 'ADVP']
 
 def constituent_tag(parse_string):
     '''
@@ -60,6 +60,14 @@ def entity_from_span_lst(lst):
                 return [token._.coref_clusters[0].main]
     
     return lst
+
+def good_length_obj(obj):
+    # a bunch of list casting cuz i'm not sure if these will be Spans or lists
+    lst = list(obj)
+    if len(lst) > 1:
+        return True
+    
+    return len(list(lst[0])) > 2
 
 def str_from_token_lst(lst):
     output = lst[0].text

@@ -2,25 +2,6 @@
 
 from utils import *
 
-<<<<<<< Updated upstream
-# pattern to match for simple predicates
-PRED_PATTERN = ['NP', 'VP', '.']
-
-# Berkeley Neural Parser token tags that we will include in noun phrases
-NOUN_TAGS = ['NP', 'NNP', 'NNS', 'NN', 'IN', 'POS', 'DT', 'CD']
-
-# Wh- words corresponding to different entity types
-WH_MAP = { 'PERSON': 'Who',
-           'GPE': 'What',
-           'LOC': 'Where',
-           'ORG': 'What',
-           'FC': 'What',
-           'EVENT': 'What',
-           'WORK_OF_ART': 'What' 
-         }
-
-=======
->>>>>>> Stashed changes
 class PredicateFinder:
     """Finds all the predicates in a document."""
     
@@ -30,7 +11,6 @@ class PredicateFinder:
         for sentence in doc.sents:
 
             # DEBUG
-<<<<<<< Updated upstream
             # print('SENTENCE:')
             # print(sentence._.parse_string)
             # print('\nCONSTITUENTS:')
@@ -49,30 +29,6 @@ class PredicateFinder:
         #     print(pred.verb)
         #     print(pred.obj)
         #     print()
-=======
-            print('SENTENCE:')
-            print(sentence._.parse_string)
-            print('\nCONSTITUENTS:')
-            for child in sentence._.constituents:
-                print(child._.parse_string)
-                print('-')
-            print('\n---\n')
-            # /DEBUG
-
-            if len(list(sentence)) <= 25:
-                predicates.extend(self.find_predicates_in_sentence([], sentence))
-            else: print(len(list(sentence)))
-
-        # DEBUG
-        print(len(predicates))
-        for pred in predicates:
-            print(pred.subj)
-           # print(pred.subj_ent)
-           # print(pred.wh_word)
-            print(pred.verb)
-            print(pred.obj)
-            print()
->>>>>>> Stashed changes
         # /DEBUG
 
         return predicates
@@ -82,13 +38,18 @@ class PredicateFinder:
         if self.is_predicate(root):
             print(root)
             print(root._.parse_string)
+
             pred = Predicate(root)
+
             print(pred.subj)
             print(pred.wh_word)
             print(pred.verb)
             print(pred.obj)
+            print(pred.is_valid())
             print()
-            predicates.append(pred)
+
+            if pred.is_valid():
+                predicates.append(pred) 
 
         # recursive case - check children for predicates
         for child in root._.children:
@@ -154,12 +115,19 @@ class Predicate:
                 
             if i == 1:
                 self.verb = self.__find_verb(child, [])
-                self.obj = self.__find_object(child)
+                self.obj = self.__find_object(child, [])
+
+    def is_valid(self):
+        # validates that the predicate is actually a good one
+        # (has a verb, has a subj, has an obj, obj isn't too short)
+        return self.subj is not None and len(list(self.subj)) > 0 and \
+               self.verb is not None and len(list(self.verb)) > 0 and \
+               self.obj is not None and len(list(self.obj)) > 0 and \
+               good_length_obj(self.obj)
 
     def __find_subject(self, root, output):
         # Recursive case: node still has children
-        # Reversing the children list to prevent titles
-        for child in list(root._.children)[::-1]:
+        for child in list(root._.children)[::-1]: # Reversing the children list to prevent titles
             # Not adding children before a title break
             # TODO: Make this less janky
             if constituent_tag(child._.parse_string) == '_SP':
@@ -198,17 +166,13 @@ class Predicate:
 
         return output
 
-    def __find_object(self, root):
+    def __find_object(self, root, output):
         # FIXME: prepositions and other information-holding extenders
         #        are not yet accounted for.
 
-        # base case: root is a noun
-        if is_noun(root):
-            return root
-
-        # recursive case: find the first noun in the children
+        # Just finding the top-level NP or PP in the VP
         for child in root._.children:
-            if is_verb(child):
-                break
-                
-            self.__find_object(child, output)
+            if is_noun(child):
+                output.append(child)
+        
+        return output
