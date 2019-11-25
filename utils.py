@@ -23,6 +23,8 @@ VERB_TAGS = ['VBN', 'VBZ', 'VBD', 'VBP', 'ADVP']
 
 PERSONAL_PRONOUNS = ['HE', 'SHE', 'HIM', 'HER', 'THEY', 'THEM']
 
+POSSESSIVES = ['HIS', 'HER', 'THEIR', 'ITS']
+
 IMPERSONAL_PRONOUNS = ['IT']
 
 DEMONSTRATIVES = ['THIS', 'THAT', 'THOSE', 'THESE']
@@ -80,6 +82,9 @@ def good_length_obj(obj):
 
 def is_stop_word(word):
     return word in STOP_WORDS
+
+def is_stop_word_or_possessive(word):
+    return word in STOP_WORDS or word in POSSESSIVES
 
 def wh_word_from(lst):
     # Get the corresponding wh word, defaults to 'What'

@@ -14,7 +14,7 @@ class Question:
     def __init__(self, question, klass, answer):
         self.q_string = question
         self.q_class = klass
-        self.q_answer = answer
+        self.q_answer = self.__valid_answer(answer)
 
     def is_valid(self):
         # remove punctuation
@@ -25,4 +25,13 @@ class Question:
                 return False
         
         return True
+
+    def __valid_answer(self, s):
+        s = s.translate(s.maketrans('', '', string.punctuation))
+
+        for word in s.split():
+            if is_stop_word_or_possessive(word.upper()):
+                return None
+
+        return s
         
