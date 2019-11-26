@@ -11,10 +11,11 @@ class Question:
         q_answer (str): The answer to the question 
     '''
     
-    def __init__(self, question, klass, answer):
+    def __init__(self, question, klass, answer, sentence):
         self.q_string = question
         self.q_class = klass
         self.q_answer = self.__valid_answer(answer)
+        self.sentence = sentence
 
     def is_valid(self):
         # remove punctuation
@@ -34,9 +35,6 @@ class Question:
                 return None
 
         return s
-
-    def add_sentence(self, sentence):
-        self.sentence = sentence
 
     def entities(self):
         entities = []

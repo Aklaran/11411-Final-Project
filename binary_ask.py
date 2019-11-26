@@ -21,19 +21,18 @@ pp = pprint.PrettyPrinter()
 
 class BinaryQuestionGenerator:
 
-    def __init__(self, doc):
+    def __init__(self):
         blockPrint()
-        self.doc = doc
-        pf = PredicateFinder()
-        self.predicates = pf.find_predicates(self.doc)
+
         # this is used from the nltk library to get present tense verbs and singular nouns
         self.wnl = WordNetLemmatizer()
+
         enablePrint()
 
-    def generateBinaryQuestions(self):
+    def ask(self, predicates):
         output = []
 
-        for pred in self.predicates:
+        for pred in predicates:
 
             # TODO @amyzhang17: see if there are other sentence structures to form binary questions from
             if len(pred.verb) > 0 and pred.obj is not None and pred.subj is not None:
@@ -74,8 +73,7 @@ class BinaryQuestionGenerator:
         if len(after_obj)>0:
             raw_q += " " + after_obj
         raw_q += "?"
-        question = Question(raw_q, 'BINARY', 'Yes')
-        question.add_sentence(predicate.sentence)
+        question = Question(raw_q, 'BINARY', 'Yes', predicate.sentence)
         return question
 
 # these could go in util functions
@@ -113,9 +111,13 @@ if __name__ == "__main__":
     # Instantiate our question generator and make some questions
     preprocessor = st.Preprocessor(text)
     doc = preprocessor.doc
-    question_generator = BinaryQuestionGenerator(doc)
 
-    binary_questions = question_generator.generateBinaryQuestions()
+    pf = PredicateFinder()
+    predicates = pf.find_predicates(doc)
+
+    question_generator = BinaryQuestionGenerator()
+
+    binary_questions = question_generator.ask(predicates)
     
     # debug line; remove for prod
     print(len(binary_questions))

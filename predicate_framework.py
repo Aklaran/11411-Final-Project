@@ -106,7 +106,9 @@ class Predicate:
         # all 'find' methods assume the input to be a simple predicate
         # that is, its syntax labels are (S (NP) (VP) (.))
         # and the VP conforms to (VP (V) (NP)) or (VP (V))
+
         self.sentence = sentence
+        
         for i, child in enumerate(sentence._.children):
 
             if i == 0:
