@@ -34,4 +34,13 @@ class Question:
                 return None
 
         return s
-        
+
+    def add_sentence(self, sentence):
+        self.sentence = sentence
+
+    def entities(self):
+        entities = []
+        for span in self.sentence._.children:
+            if span._.is_coref:
+                entities.append(span._.coref_cluster.main)
+        return entities

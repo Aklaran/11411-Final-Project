@@ -1,7 +1,13 @@
 # this is a text preprocessor module built using spacy and neuralcoref
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 import spacy
 import neuralcoref
+
+import logging
+logging.getLogger('tensorflow').disabled = True
+
 import benepar
 
 from benepar.spacy_plugin import BeneparComponent
@@ -13,9 +19,10 @@ class Preprocessor:
         nlp = spacy.load("en_core_web_sm")
 
         neuralcoref.add_to_pipe(nlp, greedyness=0.53125)
-
-        benepar.download('benepar_en2')
-        nlp.add_pipe(BeneparComponent("benepar_en2"))
+        benepar.download('benepar_en2', quiet=True)
+        # TODO: Fix this line somehow to supress its dumb output
+        benepar_comp = BeneparComponent("benepar_en2")
+        nlp.add_pipe(benepar_comp)
 
         # define text (change to pipeline for final version)
         self.doc = nlp(input_text)
