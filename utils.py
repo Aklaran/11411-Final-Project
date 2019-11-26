@@ -100,6 +100,7 @@ def wh_word_from(lst):
             
     return WH_MAP.get(lst[0][0].ent_type_, 'What')
 
+
 def subj_from_token_lst(lst):
     # lowercase the subject word if it's not a proper noun
     # for use in binary questions
@@ -107,10 +108,18 @@ def subj_from_token_lst(lst):
     first = lst[0]
 
     output = ''
-    if constituent_tag(first._.parse_string) not in ['NNP', 'NNPS']:
+    if not is_ent(first[0]):
         output = first.text.lower()
     
     return str_from_token_lst(lst, output)
+
+def is_ent(token):
+    # 2 - outside ent
+    # 0 - no ent tag set
+    return token.ent_iob not in [0, 2]
+
+def is_plural(span):
+    return constituent_tag(span._.parse_string).endswith('S')
 
 def str_from_token_lst(lst, first_corrected=''):
     if first_corrected != '': # subj capitalization has been fixed

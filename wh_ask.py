@@ -1,6 +1,6 @@
 from question import Question
 from qg_protocol import QuestionGenerator
-from utils import str_from_token_lst, subj_from_token_lst
+from utils import str_from_token_lst, subj_from_token_lst, is_ent
 
 class WhQuestionGenerator(QuestionGenerator):
     def ask(self, predicates):
@@ -9,7 +9,7 @@ class WhQuestionGenerator(QuestionGenerator):
         for pred in predicates:
             # make questions where answer is sentence subject
             # getting last index of verb list *probably* gets the most operant verb
-            if pred.verb[-1].lemma_ == 'be':
+            if pred.verb[-1].lemma_ == 'be' and is_ent(pred.subj[0][0]):
                 output.append(self.existential_q_from(pred))
             
             # make questions where answer is sentence object
