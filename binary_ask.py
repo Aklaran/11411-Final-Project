@@ -7,6 +7,7 @@ import string
 
 import preprocess as st
 from predicate_framework import Predicate, PredicateFinder
+from qg_protocol import QuestionGenerator
 from ranker import Ranker
 from question import Question
 from utils import * 
@@ -19,7 +20,7 @@ from nltk.stem import WordNetLemmatizer
 
 pp = pprint.PrettyPrinter()
 
-class BinaryQuestionGenerator:
+class BinaryQuestionGenerator(QuestionGenerator):
 
     def __init__(self):
         blockPrint()
@@ -34,8 +35,9 @@ class BinaryQuestionGenerator:
 
         for pred in predicates:
 
-            # TODO @amyzhang17: see if there are other sentence structures to form binary questions from
-            if len(pred.verb) > 0 and pred.obj is not None and pred.subj is not None:
+            question = self.simple_true_predicate_q_from(pred)
+
+            if question.is_valid():
                 
                 # make questions where answer is yes
                 output.append(self.simple_true_predicate_q_from(pred))

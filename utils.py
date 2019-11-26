@@ -90,6 +90,9 @@ def wh_word_from(lst):
     # Get the corresponding wh word, defaults to 'What'
     # Input: list(Span)
 
+    if len(lst) == 0 or len(lst[0]) == 0:
+        return 'What'
+
     for span in lst:
         for token in span:
             if token.text.upper() in PERSONAL_PRONOUNS:

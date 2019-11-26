@@ -31,7 +31,7 @@ class Ranker:
                 # ent size is large: +2
         # -abs(dist from 10 words) / 3
         score = 0
-        question_ents = question.entities()
+        question_ents = question.entities
         if len(question_ents) > 0:
             score += 10
             for ent in question_ents:
