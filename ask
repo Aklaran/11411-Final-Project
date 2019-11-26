@@ -7,6 +7,7 @@ import string
 
 import preprocess as st
 from predicate_framework import Predicate, PredicateFinder
+from ranker import Ranker
 from question import Question
 from utils import *
 
@@ -45,7 +46,7 @@ class QuestionGenerator:
         q_str = ' '.join([wh_word, vp, subj]) + '?'
 
         question = Question(q_str, wh_word.upper(), obj)
-
+        question.add_sentence(predicate.sentence)
         if question.is_valid():
             return question
 
@@ -61,7 +62,7 @@ class QuestionGenerator:
         q_str = ' '.join([wh_word, vp, obj]) + '?'
 
         question = Question(q_str, wh_word.upper(), subj_ent)
-
+        question.add_sentence(predicate.sentence)
         if question.is_valid():
             return question
 
@@ -115,9 +116,23 @@ if __name__ == "__main__":
     # #     print(wh_questions[j])
     
     # debug line; remove for prod
-    print()
-    for question in wh_questions: 
-        print(question.q_string)
-        print(question.q_class)
-        print(question.q_answer)
+    print(len(wh_questions))
+    # for question in wh_questions: 
+    #     print(question.q_string)
+    #     print(question.q_class)
+    #     print(question.q_answer)
+    #     print()
+
+    print("RANKING")
+
+    ranking = Ranker(wh_questions, processed_doc)
+    ranking.rank()
+    ranking.sort()
+    for i in range(N_QUESTIONS):
+        new_question = ranking.pop_and_reinsert()
+        print(new_question[0].q_string)
+        print(new_question[0].q_class)
+        print(new_question[0].q_answer)
+        print(new_question[1])
         print()
+

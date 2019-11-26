@@ -122,7 +122,7 @@ def str_from_token_lst(lst):
 
         output += token
 
-    return output
+    return output.strip()
 
 # Statements for debug
 if __name__ == '__main__':

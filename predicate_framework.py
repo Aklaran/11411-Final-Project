@@ -23,12 +23,12 @@ class PredicateFinder:
             predicates.extend(self.find_predicates_in_sentence([], sentence))
 
         # DEBUG
-        for pred in predicates:
-            print(pred.subj)
-            print(pred.wh_word)
-            print(pred.verb)
-            print(pred.obj)
-            print()
+        # for pred in predicates:
+        #     print(pred.subj)
+        #     print(pred.wh_word)
+        #     print(pred.verb)
+        #     print(pred.obj)
+        #     print()
         # /DEBUG
 
         return predicates
@@ -105,7 +105,7 @@ class Predicate:
         # all 'find' methods assume the input to be a simple predicate
         # that is, its syntax labels are (S (NP) (VP) (.))
         # and the VP conforms to (VP (V) (NP)) or (VP (V))
-
+        self.sentence = sentence
         for i, child in enumerate(sentence._.children):
 
             if i == 0:

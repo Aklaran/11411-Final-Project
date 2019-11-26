@@ -7,19 +7,23 @@ import string
 
 import preprocess as st
 from predicate_framework import Predicate, PredicateFinder
+from ranker import Ranker
 from question import Question
-from nltk.stem.wordnet import WordNetLemmatizer
+from utils import * 
 
 import pprint as pprint
+
+import nltk
+nltk.download('wordnet', quiet=True)
+from nltk.stem import WordNetLemmatizer
 
 pp = pprint.PrettyPrinter()
 
 class BinaryQuestionGenerator:
 
-    def __init__(self, text):
+    def __init__(self, doc):
         blockPrint()
-        preprocessor = st.Preprocessor(text)
-        self.doc = preprocessor.doc
+        self.doc = doc
         pf = PredicateFinder()
         self.predicates = pf.find_predicates(self.doc)
         # this is used from the nltk library to get present tense verbs and singular nouns
@@ -41,10 +45,10 @@ class BinaryQuestionGenerator:
         return list(set(output))
 
     def simple_true_predicate_q_from(self, predicate):
-        vp = ' '.join([verb.text.strip() for verb in predicate.verb])
-        subj = predicate.subj.text.strip()
+        vp = str_from_token_lst(predicate.verb)
+        subj = str_from_token_lst(predicate.subj)
         wh_word = predicate.wh_word
-        obj = predicate.obj.text.strip()
+        obj = str_from_token_lst(predicate.obj)
         # TODO @amyzhang17: make a feature for predicates that can access the original text
         # after_obj = predicate.after_obj.strip()
         after_obj, raw_q = "", ""
@@ -70,7 +74,9 @@ class BinaryQuestionGenerator:
         if len(after_obj)>0:
             raw_q += " " + after_obj
         raw_q += "?"
-        return Question(raw_q, 'BINARY', 'Yes')
+        question = Question(raw_q, 'BINARY', 'Yes')
+        question.add_sentence(predicate.sentence)
+        return question
 
 # these could go in util functions
 def blockPrint():
@@ -105,14 +111,31 @@ if __name__ == "__main__":
         text = file.read()
 
     # Instantiate our question generator and make some questions
-    question_generator = BinaryQuestionGenerator(text)
+    preprocessor = st.Preprocessor(text)
+    doc = preprocessor.doc
+    question_generator = BinaryQuestionGenerator(doc)
 
     binary_questions = question_generator.generateBinaryQuestions()
     
     # debug line; remove for prod
-    print()
-    for question in binary_questions: 
-        print(question.q_string)
-        print(question.q_class)
-        print(question.q_answer)
+    print(len(binary_questions))
+    # for question in binary_questions: 
+    #     print(question.q_string)
+    #     print(question.q_class)
+    #     print(question.q_answer)
+    #     print()
+
+    print("RANKING")
+
+    ranking = Ranker(binary_questions, doc)
+    ranking.rank()
+    ranking.sort()
+    for i in range(N_QUESTIONS):
+        new_question = ranking.pop_and_reinsert()
+        print(new_question[0].q_string)
+        print(new_question[0].q_class)
+        print(new_question[0].q_answer)
+        print(new_question[1])
         print()
+
+

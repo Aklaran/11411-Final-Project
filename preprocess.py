@@ -14,7 +14,7 @@ class Preprocessor:
 
         neuralcoref.add_to_pipe(nlp, greedyness=0.53125)
 
-        benepar.download('benepar_en2')
+        benepar.download('benepar_en2', quiet=True)
         nlp.add_pipe(BeneparComponent("benepar_en2"))
 
         # define text (change to pipeline for final version)
