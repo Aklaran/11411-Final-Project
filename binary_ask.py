@@ -42,6 +42,9 @@ class BinaryQuestionGenerator(QuestionGenerator):
                 # make questions where answer is yes
                 output.append(self.simple_true_predicate_q_from(pred))
 
+                # answer is no
+                output.append(self.simple_false_predicate_q_from(pred))
+
         # set to remove duplicates, list to remain subscriptable
         return list(set(output))
 
@@ -62,9 +65,9 @@ class BinaryQuestionGenerator(QuestionGenerator):
             raw_q = ' '.join(['Did', subj, v_lemmatized, obj])
         else:
             # is-based verb
-            if vp == 'is':
+            if 'is' in vp:
                 raw_q = ' '.join(['Is', subj_lemmatized, obj])
-            elif vp == 'are':
+            elif 'are' in vp:
                     raw_q = ' '.join(['Are', subj, obj])
             else:
                 if subj == subj_lemmatized:
@@ -76,6 +79,39 @@ class BinaryQuestionGenerator(QuestionGenerator):
             raw_q += " " + after_obj
         raw_q += "?"
         question = Question(raw_q, 'BINARY', 'Yes', predicate.sentence)
+        return question
+
+    def simple_false_predicate_q_from(self, predicate):
+        vp = str_from_token_lst(predicate.verb)
+        subj = str_from_token_lst(predicate.subj)
+        wh_word = predicate.wh_word
+        obj = str_from_token_lst(predicate.obj)
+        # TODO @amyzhang17: make a feature for predicates that can access the original text
+        # after_obj = predicate.after_obj.strip()
+        after_obj, raw_q = "", ""
+
+        # raw_q = ' '.join([wh_word, vp, obj]) + '?'
+        v_lemmatized = self.wnl.lemmatize(vp, 'v')
+        subj_lemmatized = self.wnl.lemmatize(subj, 'n')
+        if v_lemmatized != 'be':
+            # example: Did Nicholas Cage steal the Declaration of Indepenedence?
+            raw_q = ' '.join(['Did', subj, 'not', v_lemmatized, obj])
+        else:
+            # is-based verb
+            if 'is' in vp:
+                raw_q = ' '.join(['Is', subj_lemmatized, 'not', obj])
+            elif 'are' in vp:
+                    raw_q = ' '.join(['Are', subj, 'not', obj])
+            else:
+                if subj == subj_lemmatized:
+                    raw_q = ' '.join(['Was', subj_lemmatized, 'not', obj])
+                else:
+                    raw_q = ' '.join(['Were', subj, 'not', obj])
+
+        if len(after_obj)>0:
+            raw_q += " " + after_obj
+        raw_q += "?"
+        question = Question(raw_q, 'BINARY', 'No', predicate.sentence)
         return question
 
 # these could go in util functions
