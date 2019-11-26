@@ -17,14 +17,10 @@ class Ranker:
         avg_coref_len: (int) average length of coref clusters
     '''
     
-    def __init__(self, question_list, doc):
+    def __init__(self, question_list, avg_coref_len):
         self.q_list = [(question, 0) for question in question_list]
         # self.doc = doc
-        n, l = 0, 0
-        for cluster in doc._.coref_clusters:
-            n += 1
-            l += len(cluster)
-        self.avg_coref_len = 0 if (n == 0) else l/n
+        self.avg_coref_len = avg_coref_len
 
     def _rank_question(self, question):
         # is entity: +10
@@ -57,6 +53,8 @@ class Ranker:
 
     def pop_and_reinsert(self):
         # pops the best question from the front of the priority queue
+        # TODO @amyzhang17: currently pops the question tuple with the question and score
+        # could be changed to just pop the question
         best_question = self.q_list.pop(0)
         # decrements it's score by exactly the MAX_SCORE amount
         new_worst_question = (best_question[0], best_question[1]-MAX_SCORE)

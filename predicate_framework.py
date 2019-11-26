@@ -95,6 +95,7 @@ class Predicate:
     Holds information about a predicate for easy reconstruction.
     
     Properties:
+        sentence: The original sentence
         subj (list(Span)): The subject of the predicate
         wh_word (str): the 'wh' word corresponding to the predicate's subject
         verb (list(Span)): The main verb of the predicate

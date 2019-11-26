@@ -10,7 +10,7 @@ from predicate_framework import Predicate, PredicateFinder
 from ranker import Ranker
 from question import Question
 from utils import *
-
+from binary_ask import BinaryQuestionGenerator
 import pprint as pprint
 
 pp = pprint.PrettyPrinter()
@@ -107,7 +107,7 @@ if __name__ == "__main__":
     preprocessor = st.Preprocessor(text)
     processed_doc = preprocessor.doc
 
-    # # Instantiate our question generator and make some questions
+    # Instantiate our wh-question generator and make some questions
     question_generator = QuestionGenerator(processed_doc)
 
     wh_questions = question_generator.generateWhQuestions()
@@ -116,23 +116,46 @@ if __name__ == "__main__":
     # #     print(wh_questions[j])
     
     # debug line; remove for prod
-    print(len(wh_questions))
+    # print(len(wh_questions))
     # for question in wh_questions: 
     #     print(question.q_string)
     #     print(question.q_class)
     #     print(question.q_answer)
     #     print()
 
-    print("RANKING")
+    n, l = 0, 0
+    for cluster in processed_doc._.coref_clusters:
+        n += 1
+        l += len(cluster)
+    avg_coref_len = 0 if (n == 0) else l/n
 
-    ranking = Ranker(wh_questions, processed_doc)
-    ranking.rank()
-    ranking.sort()
-    for i in range(N_QUESTIONS):
-        new_question = ranking.pop_and_reinsert()
-        print(new_question[0].q_string)
-        print(new_question[0].q_class)
-        print(new_question[0].q_answer)
-        print(new_question[1])
-        print()
+    print("WH-RANKING")
 
+    wh_ranking = Ranker(wh_questions, avg_coref_len)
+    wh_ranking.rank()
+    wh_ranking.sort()
+    for i in range(int((N_QUESTIONS+1)/2)):
+        new_wh_question = wh_ranking.pop_and_reinsert()
+        print(new_wh_question[0].q_string)
+        # print(new_wh_question[0].q_class)
+        # print(new_wh_question[0].q_answer)
+        # print(new_wh_question[1])
+        # print()
+
+    # Instantiate our wh-question generator and make some questions
+    binary_question_generator = BinaryQuestionGenerator(processed_doc)
+
+    binary_questions = binary_question_generator.generateBinaryQuestions()
+
+    print("BINARY RANKING")
+
+    bi_ranking = Ranker(binary_questions, avg_coref_len)
+    bi_ranking.rank()
+    bi_ranking.sort()
+    for i in range(int(N_QUESTIONS/2)):
+        new_bi_question = bi_ranking.pop_and_reinsert()
+        print(new_bi_question[0].q_string)
+        # print(new_bi_question[0].q_class)
+        # print(new_bi_question[0].q_answer)
+        # print(new_bi_question[1])
+        # print()
