@@ -13,13 +13,13 @@ WH_MAP = { 'PERSON': 'Who',
            'ORG': 'What',
            'FC': 'What',
            'EVENT': 'What',
-           'WORK_OF_ART': 'What' 
+           'WORK_OF_ART': 'What'
          }
 
 # Berkeley Neural Parser token tags that we will include in noun phrases
 NOUN_TAGS = ['NP', 'NNP', 'NNS', 'NN', 'IN', 'POS', 'DT', 'CD', 'TO', 'PP', 'PRT', 'JJ']
 
-VERB_TAGS = ['VBN', 'VBZ', 'VBD', 'VBP', 'ADVP']
+VERB_TAGS = ['VBN', 'VBZ', 'VBD', 'VBP']
 
 PERSONAL_PRONOUNS = ['HE', 'SHE', 'HIM', 'HER', 'THEY', 'THEM']
 
@@ -27,7 +27,7 @@ POSSESSIVES = ['HIS', 'HER', 'THEIR', 'ITS']
 
 IMPERSONAL_PRONOUNS = ['IT']
 
-DEMONSTRATIVES = ['THIS', 'THAT', 'THOSE', 'THESE']
+DEMONSTRATIVES = ['THIS', 'THAT', 'THOSE', 'THESE', 'THERE']
 
 STOP_WORDS = set(chain(PERSONAL_PRONOUNS, IMPERSONAL_PRONOUNS, DEMONSTRATIVES))
 
@@ -100,8 +100,23 @@ def wh_word_from(lst):
             
     return WH_MAP.get(lst[0][0].ent_type_, 'What')
 
-def str_from_token_lst(lst):
-    output = lst[0].text
+def subj_from_token_lst(lst):
+    # lowercase the subject word if it's not a proper noun
+    # for use in binary questions
+
+    first = lst[0]
+
+    output = ''
+    if constituent_tag(first._.parse_string) not in ['NNP', 'NNPS']:
+        output = first.text.lower()
+    
+    return str_from_token_lst(lst, output)
+
+def str_from_token_lst(lst, first_corrected=''):
+    if first_corrected != '': # subj capitalization has been fixed
+        output = first_corrected
+    else:
+        output = lst[0].text
 
     num_quotes = 0
 

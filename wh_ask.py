@@ -1,6 +1,6 @@
 from question import Question
 from qg_protocol import QuestionGenerator
-from utils import str_from_token_lst
+from utils import str_from_token_lst, subj_from_token_lst
 
 class WhQuestionGenerator(QuestionGenerator):
     def ask(self, predicates):
@@ -21,7 +21,7 @@ class WhQuestionGenerator(QuestionGenerator):
 
     def existential_q_from(self, predicate):
         vp = str_from_token_lst(predicate.verb)
-        subj = str_from_token_lst(predicate.subj)
+        subj = subj_from_token_lst(predicate.subj)
         wh_word = predicate.wh_word
         obj = str_from_token_lst(predicate.obj)
 
@@ -35,7 +35,7 @@ class WhQuestionGenerator(QuestionGenerator):
 
     def simple_predicate_q_from(self, predicate):
         vp = str_from_token_lst(predicate.verb)
-        subj = str_from_token_lst(predicate.subj)
+        subj = subj_from_token_lst(predicate.subj)
         subj_ent = str_from_token_lst(predicate.subj_ent)
         wh_word = predicate.wh_word
         obj = str_from_token_lst(predicate.obj)

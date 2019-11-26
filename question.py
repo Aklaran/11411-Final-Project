@@ -17,8 +17,6 @@ class Question:
         self.q_answer = self.__valid_answer(answer)
         self.sentence = sentence
         self.entities = self.get_ents(sentence, [])
-        print(self.q_string)
-        print(self.entities)
 
     def is_valid(self):
         # remove punctuation
