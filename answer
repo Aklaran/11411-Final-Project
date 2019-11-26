@@ -165,6 +165,7 @@ class answer_question:
                 if token.dep_ == 'neg':
                     return 'No'
             return 'Yes'
+        return best_sentence
 
 
 answer_question = answer_question(sys.argv[1], sys.argv[2])
