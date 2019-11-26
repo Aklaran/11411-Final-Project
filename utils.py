@@ -109,7 +109,8 @@ def subj_from_token_lst(lst):
 
     output = ''
     if not is_ent(first[0]):
-        output = first.text.lower()
+        first_letter = first.text[0].lower()
+        output = first_letter + first.text[1:]
     
     return str_from_token_lst(lst, output)
 

@@ -50,7 +50,7 @@ class BinaryQuestionGenerator(QuestionGenerator):
 
     def simple_true_predicate_q_from(self, predicate):
         vp = str_from_token_lst(predicate.verb)
-        subj = subj_from_token_lst(predicate.subj)
+        subj = subj_from_token_lst(predicate.subj_ent)
         wh_word = predicate.wh_word
         obj = str_from_token_lst(predicate.obj)
         # TODO @amyzhang17: make a feature for predicates that can access the original text
@@ -83,7 +83,7 @@ class BinaryQuestionGenerator(QuestionGenerator):
 
     def simple_false_predicate_q_from(self, predicate):
         vp = str_from_token_lst(predicate.verb)
-        subj = subj_from_token_lst(predicate.subj)
+        subj = subj_from_token_lst(predicate.subj_ent)
         wh_word = predicate.wh_word
         obj = str_from_token_lst(predicate.obj)
         # TODO @amyzhang17: make a feature for predicates that can access the original text
