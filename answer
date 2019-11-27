@@ -8,7 +8,6 @@ import string
 import preprocess as st
 import ask
 
-
 sentences= English()
 nlp = spacy.load('en_core_web_md')
 stopwords = spacy.lang.en.stop_words.STOP_WORDS
@@ -25,9 +24,10 @@ class answer_question:
         processed_doc = preprocesser.doc
 
         # Instantiate our question generator and make some questions
-        question_generator = ask.QuestionGenerator()
+        question_generator = ask.QuestionRunner()
 
-        self.wh_questions = question_generator.generateWhQuestions(processed_doc)
+        question_generator.generate_questions(processed_doc)
+        self.our_questions = question_generator.questions
         # print(self.wh_questions)
 
         doc = sentences(text)
@@ -46,7 +46,7 @@ class answer_question:
 
         # generate (similarity, question) list for each question
         candidates = []
-        for question in self.wh_questions:
+        for question in self.our_questions:
             sent = question.q_string
             q_class = question.q_class
             correct_answer = question.q_answer

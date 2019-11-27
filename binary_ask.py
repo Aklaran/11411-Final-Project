@@ -7,6 +7,7 @@ import string
 
 import preprocess as st
 from predicate_framework import Predicate, PredicateFinder
+from qg_protocol import QuestionGenerator
 from ranker import Ranker
 from question import Question
 from utils import * 
@@ -19,34 +20,37 @@ from nltk.stem import WordNetLemmatizer
 
 pp = pprint.PrettyPrinter()
 
-class BinaryQuestionGenerator:
+class BinaryQuestionGenerator(QuestionGenerator):
 
-    def __init__(self, doc):
+    def __init__(self):
         blockPrint()
-        self.doc = doc
-        pf = PredicateFinder()
-        self.predicates = pf.find_predicates(self.doc)
+
         # this is used from the nltk library to get present tense verbs and singular nouns
         self.wnl = WordNetLemmatizer()
+
         enablePrint()
 
-    def generateBinaryQuestions(self):
+    def ask(self, predicates):
         output = []
 
-        for pred in self.predicates:
+        for pred in predicates:
 
-            # TODO @amyzhang17: see if there are other sentence structures to form binary questions from
-            if len(pred.verb) > 0 and pred.obj is not None and pred.subj is not None:
+            question = self.simple_true_predicate_q_from(pred)
+
+            if question.is_valid():
                 
                 # make questions where answer is yes
                 output.append(self.simple_true_predicate_q_from(pred))
+
+                # answer is no
+                output.append(self.simple_false_predicate_q_from(pred))
 
         # set to remove duplicates, list to remain subscriptable
         return list(set(output))
 
     def simple_true_predicate_q_from(self, predicate):
         vp = str_from_token_lst(predicate.verb)
-        subj = str_from_token_lst(predicate.subj)
+        subj = subj_from_token_lst(predicate.subj_ent)
         wh_word = predicate.wh_word
         obj = str_from_token_lst(predicate.obj)
         # TODO @amyzhang17: make a feature for predicates that can access the original text
@@ -61,9 +65,9 @@ class BinaryQuestionGenerator:
             raw_q = ' '.join(['Did', subj, v_lemmatized, obj])
         else:
             # is-based verb
-            if vp == 'is':
+            if 'is' in vp:
                 raw_q = ' '.join(['Is', subj_lemmatized, obj])
-            elif vp == 'are':
+            elif 'are' in vp:
                     raw_q = ' '.join(['Are', subj, obj])
             else:
                 if subj == subj_lemmatized:
@@ -74,8 +78,40 @@ class BinaryQuestionGenerator:
         if len(after_obj)>0:
             raw_q += " " + after_obj
         raw_q += "?"
-        question = Question(raw_q, 'BINARY', 'Yes')
-        question.add_sentence(predicate.sentence)
+        question = Question(raw_q, 'BINARY', 'Yes', predicate.sentence)
+        return question
+
+    def simple_false_predicate_q_from(self, predicate):
+        vp = str_from_token_lst(predicate.verb)
+        subj = subj_from_token_lst(predicate.subj_ent)
+        wh_word = predicate.wh_word
+        obj = str_from_token_lst(predicate.obj)
+        # TODO @amyzhang17: make a feature for predicates that can access the original text
+        # after_obj = predicate.after_obj.strip()
+        after_obj, raw_q = "", ""
+
+        # raw_q = ' '.join([wh_word, vp, obj]) + '?'
+        v_lemmatized = self.wnl.lemmatize(vp, 'v')
+        subj_lemmatized = self.wnl.lemmatize(subj, 'n')
+        if v_lemmatized != 'be':
+            # example: Did Nicholas Cage steal the Declaration of Indepenedence?
+            raw_q = ' '.join(['Did', subj, 'not', v_lemmatized, obj])
+        else:
+            # is-based verb
+            if 'is' in vp:
+                raw_q = ' '.join(['Is', subj_lemmatized, 'not', obj])
+            elif 'are' in vp:
+                    raw_q = ' '.join(['Are', subj, 'not', obj])
+            else:
+                if subj == subj_lemmatized:
+                    raw_q = ' '.join(['Was', subj_lemmatized, 'not', obj])
+                else:
+                    raw_q = ' '.join(['Were', subj, 'not', obj])
+
+        if len(after_obj)>0:
+            raw_q += " " + after_obj
+        raw_q += "?"
+        question = Question(raw_q, 'BINARY', 'No', predicate.sentence)
         return question
 
 # these could go in util functions
@@ -113,9 +149,13 @@ if __name__ == "__main__":
     # Instantiate our question generator and make some questions
     preprocessor = st.Preprocessor(text)
     doc = preprocessor.doc
-    question_generator = BinaryQuestionGenerator(doc)
 
-    binary_questions = question_generator.generateBinaryQuestions()
+    pf = PredicateFinder()
+    predicates = pf.find_predicates(doc)
+
+    question_generator = BinaryQuestionGenerator()
+
+    binary_questions = question_generator.ask(predicates)
     
     # debug line; remove for prod
     print(len(binary_questions))

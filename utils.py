@@ -13,13 +13,13 @@ WH_MAP = { 'PERSON': 'Who',
            'ORG': 'What',
            'FC': 'What',
            'EVENT': 'What',
-           'WORK_OF_ART': 'What' 
+           'WORK_OF_ART': 'What'
          }
 
 # Berkeley Neural Parser token tags that we will include in noun phrases
 NOUN_TAGS = ['NP', 'NNP', 'NNS', 'NN', 'IN', 'POS', 'DT', 'CD', 'TO', 'PP', 'PRT', 'JJ']
 
-VERB_TAGS = ['VBN', 'VBZ', 'VBD', 'VBP', 'ADVP']
+VERB_TAGS = ['VBN', 'VBZ', 'VBD', 'VBP']
 
 PERSONAL_PRONOUNS = ['HE', 'SHE', 'HIM', 'HER', 'THEY', 'THEM']
 
@@ -27,7 +27,7 @@ POSSESSIVES = ['HIS', 'HER', 'THEIR', 'ITS']
 
 IMPERSONAL_PRONOUNS = ['IT']
 
-DEMONSTRATIVES = ['THIS', 'THAT', 'THOSE', 'THESE']
+DEMONSTRATIVES = ['THIS', 'THAT', 'THOSE', 'THESE', 'THERE']
 
 STOP_WORDS = set(chain(PERSONAL_PRONOUNS, IMPERSONAL_PRONOUNS, DEMONSTRATIVES))
 
@@ -90,6 +90,9 @@ def wh_word_from(lst):
     # Get the corresponding wh word, defaults to 'What'
     # Input: list(Span)
 
+    if len(lst) == 0 or len(lst[0]) == 0:
+        return 'What'
+
     for span in lst:
         for token in span:
             if token.text.upper() in PERSONAL_PRONOUNS:
@@ -97,8 +100,33 @@ def wh_word_from(lst):
             
     return WH_MAP.get(lst[0][0].ent_type_, 'What')
 
-def str_from_token_lst(lst):
-    output = lst[0].text
+
+def subj_from_token_lst(lst):
+    # lowercase the subject word if it's not a proper noun
+    # for use in binary questions
+
+    first = lst[0]
+
+    output = ''
+    if not is_ent(first[0]):
+        first_letter = first.text[0].lower()
+        output = first_letter + first.text[1:]
+    
+    return str_from_token_lst(lst, output)
+
+def is_ent(token):
+    # 2 - outside ent
+    # 0 - no ent tag set
+    return token.ent_iob not in [0, 2]
+
+def is_plural(span):
+    return constituent_tag(span._.parse_string).endswith('S')
+
+def str_from_token_lst(lst, first_corrected=''):
+    if first_corrected != '': # subj capitalization has been fixed
+        output = first_corrected
+    else:
+        output = lst[0].text
 
     num_quotes = 0
 

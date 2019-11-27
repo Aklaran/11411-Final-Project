@@ -11,10 +11,12 @@ class Question:
         q_answer (str): The answer to the question 
     '''
     
-    def __init__(self, question, klass, answer):
+    def __init__(self, question, klass, answer, sentence):
         self.q_string = question
         self.q_class = klass
         self.q_answer = self.__valid_answer(answer)
+        self.sentence = sentence
+        self.entities = self.get_ents(sentence, [])
 
     def is_valid(self):
         # remove punctuation
@@ -35,12 +37,12 @@ class Question:
 
         return s
 
-    def add_sentence(self, sentence):
-        self.sentence = sentence
+    def get_ents(self, root, output):
+        for span in root._.children:
+            self.get_ents(span, output)
 
-    def entities(self):
-        entities = []
-        for span in self.sentence._.children:
-            if span._.is_coref:
-                entities.append(span._.coref_cluster.main)
-        return entities
+        if len(list(root._.children)) == 0:
+            if root._.is_coref:
+                output.append(root._.coref_cluster.main)
+
+        return output

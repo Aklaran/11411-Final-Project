@@ -21,6 +21,9 @@ class Ranker:
         self.q_list = [(question, 0) for question in question_list]
         # self.doc = doc
         self.avg_coref_len = avg_coref_len
+    
+    def length(self):
+        return len(self.q_list)
 
     def _rank_question(self, question):
         # is entity: +10
@@ -28,7 +31,7 @@ class Ranker:
                 # ent size is large: +2
         # -abs(dist from 10 words) / 3
         score = 0
-        question_ents = question.entities()
+        question_ents = question.entities
         if len(question_ents) > 0:
             score += 10
             for ent in question_ents:
@@ -60,4 +63,4 @@ class Ranker:
         new_worst_question = (best_question[0], best_question[1]-MAX_SCORE)
         # adds the question to the back of the priority queue (in case it needs to be reused)
         self.q_list.append(new_worst_question)
-        return best_question
+        return best_question[0]

@@ -29,11 +29,21 @@ class Preprocessor:
 
         # process text
         self.processed_doc = self.process(self.doc)
+
+        self.avg_coref_len = self.get_avg_coref_len(self.doc)
         #self.coref = self.doc._.coref_clusters
 
     # process()
     # inputs: doc (string)
     # returns: doc list containing sentence list of token dictionaries (2D list of dictionaries)
+
+    def get_avg_coref_len(self, doc):
+        n, l = 0, 0
+        for cluster in doc._.coref_clusters:
+            n += 1
+            l += len(cluster)
+        return 0 if (n == 0) else l/n
+
     def process(self, doc):
 
         preprocessed_doc = []
