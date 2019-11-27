@@ -86,7 +86,7 @@ class answer_question:
         most_similar = max(candidates, key=lambda x: x[0])
 
         if most_similar[0] > 0.88:
-            return most_similar
+            return most_similar[2]
         return None
 
     def classify(self, question):
@@ -187,14 +187,7 @@ for question in answer_question.q_list:
     print('###### QUESTION ######')
 
     match = answer_question.find_best_matches_vectorized(question)
-    if not match:
-        match = ('Not found', 'Not found')
-
-
-    question_vector = answer_question.make_question_set(question)
-    best_matches = answer_question.find_best_matches(question_vector)
-    answer = answer_question.answer_wh_question(question, best_matches)
-    print(match[0], '\n', match[1], '\n', question, '\n', answer,'\n')
+    print(match)
 
 
 
