@@ -6,7 +6,10 @@ import spacy
 import sys
 import string
 import preprocess as st
-import ask
+
+from wh_ask import WhQuestionGenerator
+from binary_ask import BinaryQuestionGenerator
+from question_runner import QuestionRunner
 
 sentences= English()
 nlp = spacy.load('en_core_web_md')
@@ -23,12 +26,22 @@ class answer_question:
         preprocesser = st.Preprocessor(text)
         processed_doc = preprocesser.doc
 
-        # Instantiate our question generator and make some questions
-        question_generator = ask.QuestionRunner()
+        # get the avg coref len of the doc (to pass to rankers)
+        avg_coref_len = preprocesser.avg_coref_len
 
-        question_generator.generate_questions(processed_doc)
+        # Instantiate our question generators
+        wh_gen = WhQuestionGenerator()
+        binary_gen = BinaryQuestionGenerator()
+
+        # Instantiate our question runner
+        question_generator = QuestionRunner(processed_doc,
+                                            avg_coref_len,
+                                            wh_gen,
+                                            binary_gen)
+
+        # generate and save our questions
+        question_generator.generate_questions(1000, should_print=False)
         self.our_questions = question_generator.questions
-        # print(self.wh_questions)
 
         doc = sentences(text)
         self.sentences = [sent.string.strip() for sent in doc.sents]
@@ -53,7 +66,7 @@ class answer_question:
             og_candidate = nlp(str(sent))
             candidate = ' '.join([token.text for token in og_candidate if not token.is_stop])
             candidate = nlp(candidate)
-            score = nlp(question).similarity(candidate)
+            score = nlp(sent).similarity(candidate)
             if not q_type and correct_answer:
                 candidates.append((score, og_candidate, correct_answer))
             elif q_class == q_type and correct_answer:

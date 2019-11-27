@@ -2,49 +2,11 @@
 # -*- coding:utf8 -*-
 
 import sys
-import pprint
 
 import preprocess as st
-from predicate_framework import PredicateFinder
 from wh_ask import WhQuestionGenerator
-from ranker import Ranker
 from binary_ask import BinaryQuestionGenerator
-
-
-pp = pprint.PrettyPrinter()
-
-class QuestionRunner:
-
-    def __init__(self, doc, avg_coref_len, *generators):
-        pf = PredicateFinder()
-        self.predicates = pf.find_predicates(doc)
-
-        self.avg_coref_len = avg_coref_len
-
-        self.generators = generators
-
-        self.questions = []
-
-    def generate_questions(self, N):
-        question_bins = [gen.ask(self.predicates) for gen in self.generators]
-
-        self.save_questions(question_bins)
-
-        rankers = [Ranker(questions, self.avg_coref_len) for questions in question_bins]
-
-        # round-robin print from ranker bins
-        for i in range(N):
-            j = i % len(rankers)
-
-            question = rankers[j].pop_and_reinsert()
-            print(question.q_string)
-
-    def save_questions(self, question_bins):
-        # saves all generated questions (unordered) to a property so QA can use them
- 
-        for questions in question_bins:
-            for question in questions:
-                self.questions.append(question)
+from question_runner import QuestionRunner
 
 def main(text, n_questions):
 
