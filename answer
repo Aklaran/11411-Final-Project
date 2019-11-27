@@ -87,7 +87,7 @@ class answer_question:
 
         if most_similar[0] > 0.88:
             return most_similar[2]
-        return None
+        return ""
 
     def classify(self, question):
         types = ['WHO', 'WHAT', 'WHERE', 'WHEN', 'WHY', 'HOW', 'WHICH', 'BINARY']
@@ -184,8 +184,6 @@ class answer_question:
 answer_question = answer_question(sys.argv[1], sys.argv[2])
 
 for question in answer_question.q_list:
-    print('###### QUESTION ######')
-
     match = answer_question.find_best_matches_vectorized(question)
     print(match)
 
