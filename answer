@@ -55,14 +55,13 @@ class answer_question:
 
         question = nlp(question)
         question = ' '.join([token.text for token in question if not token.is_stop])
-        print('STOPWORDS REMOVED: ', question)
 
         # generate (similarity, question) list for each question
         candidates = []
-        for question in self.our_questions:
-            sent = question.q_string
-            q_class = question.q_class
-            correct_answer = question.q_answer
+        for our_question in self.our_questions:
+            sent = our_question.q_string
+            q_class = our_question.q_class
+            correct_answer = our_question.q_answer
             og_candidate = nlp(str(sent))
             candidate = ' '.join([token.text for token in og_candidate if not token.is_stop])
             candidate = nlp(candidate)
@@ -164,7 +163,6 @@ class answer_question:
             sentence_doc = nlp(best_sentence)
             question_doc = nlp(question)
             for i in range(len(sentence_doc)):
-                print(sentence_doc[i].text, sentence_doc[i].pos_)
                 if sentence_doc[i].text.upper() in words:
                     return ' '.join([token.text for token in sentence_doc[i + 1:]])
             return best_sentence
