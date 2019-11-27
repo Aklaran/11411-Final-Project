@@ -67,9 +67,9 @@ class answer_question:
             candidate = ' '.join([token.text for token in og_candidate if not token.is_stop])
             candidate = nlp(candidate)
             score = nlp(sent).similarity(candidate)
-            if not q_type and correct_answer:
+            if not q_type and correct_answer and score > 0.88:
                 candidates.append((score, og_candidate, correct_answer))
-            elif q_class == q_type and correct_answer:
+            elif q_class == q_type and correct_answer and score > 0.88:
                 candidates.append((score, og_candidate, correct_answer))
 
         similarity_dict = dict()
@@ -84,10 +84,7 @@ class answer_question:
         # return most similar candidate
         # print(sorted(candidates, key=lambda x: x[0], reverse=True)[:3])
         most_similar = max(candidates, key=lambda x: x[0])
-
-        if most_similar[0] > 0.88:
-            return most_similar[2]
-        return ""
+        return most_similar[2]
 
     def classify(self, question):
         types = ['WHO', 'WHAT', 'WHERE', 'WHEN', 'WHY', 'HOW', 'WHICH', 'BINARY']
