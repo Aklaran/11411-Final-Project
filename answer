@@ -59,8 +59,14 @@ class answer_question:
             elif q_class == q_type and correct_answer:
                 candidates.append((score, og_candidate, correct_answer))
 
+        similarity_dict = dict()
         if not candidates:
-            return None
+            for sent in self.sentences:
+                similarity_dict[sent] = nlp(question).similarity(nlp(sent))
+            best_sentence = max(similarity_dict, key=similarity_dict.get)
+
+            return self.answer_no_match(question, best_sentence, q_type)
+
         
         # return most similar candidate
         # print(sorted(candidates, key=lambda x: x[0], reverse=True)[:3])
@@ -98,16 +104,69 @@ class answer_question:
             matches[sentence.text] = match_percent
         return max(matches, key = matches.get)
 
-    def answer_wh_question(self, question, best_sentence):
-        doc = nlp(best_sentence)
-        noun_list = []
-        for token in doc:
-            if token.pos_ == 'NOUN':
-                noun_list.append(token.text)
-        for word in noun_list:
-            if word not in question:
-                return word
-        return ""
+    def answer_no_match(self, question, best_sentence, q_type):
+        if q_type == 'WHO' or q_type == 'WHAT':
+            sentence_doc = nlp(best_sentence)
+            question_doc = nlp(question)
+            removed_matches = []
+            for token in sentence_doc:
+                if token.text not in question:
+                    removed_matches.append(token)
+            for token in removed_matches:
+                if token.dep_ == question_doc[0].dep_ or token.dep_ == 'nsubj':
+                    return token.text
+            if removed_matches:
+                return removed_matches[0].text
+            else:
+                return best_sentence
+        if q_type == 'WHERE':
+            locations = ['LOC', 'GPE', 'ORG', 'FAC']
+            sentence_doc = nlp(best_sentence)
+            question_doc = nlp(question)
+            removed_matches = []
+            for token in sentence_doc:
+                if token.text not in question:
+                    removed_matches.append(token)
+            for token in removed_matches:
+                if token.dep_ == question_doc[0].dep_ or token.ent_type_ in locations:
+                    return token.text
+            if removed_matches:
+                return removed_matches[0].text
+            else:
+                return best_sentence
+        if q_type == 'WHEN':
+            times = ['DATE', 'TIME', 'CARDINAL', 'ORDINAL']
+            sentence_doc = nlp(best_sentence)
+            question_doc = nlp(question)
+            removed_matches = []
+            for token in sentence_doc:
+                if token.text not in question:
+                    removed_matches.append(token)
+            for token in removed_matches:
+                if token.dep_ == question_doc[0].dep_ or token.ent_type_ in times:
+                    return token.text
+            if removed_matches:
+                return removed_matches[0].text
+            else:
+                return best_sentence
+        if q_type == 'WHY':
+            words = ['BECAUSE', 'SINCE', 'SO']
+            sentence_doc = nlp(best_sentence)
+            question_doc = nlp(question)
+            for i in range(len(sentence_doc)):
+                print(sentence_doc[i].text, sentence_doc[i].pos_)
+                if sentence_doc[i].text.upper() in words:
+                    return ' '.join([token.text for token in sentence_doc[i + 1:]])
+            return best_sentence
+        if q_type == 'BINARY':
+            sentence_doc = nlp(best_sentence)
+            question_doc = nlp(question)
+            for token in sentence_doc:
+                if token.dep_ == 'neg':
+                    return 'No'
+            return 'Yes'
+        return best_sentence
+
 
 answer_question = answer_question(sys.argv[1], sys.argv[2])
 
